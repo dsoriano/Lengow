@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module>
+    <fullnamespace>Lengow\Lengow</fullnamespace>
+    <descriptive locale="en_US">
+        <title>Export your catalog to marketplaces, price comparison sites and more with Lengow</title>
+    </descriptive>
+    <descriptive locale="fr_FR">
+        <title>Exportez votre catalogue vers les marketplaces, les comparateurs de prix et plus avec Lengow</title>
+    </descriptive>
+    <version>1.0</version>
+    <author>
+        <name>Benjamin Perche</name>
+        <email>bperche@openstudio.fr</email>
+    </author>
+    <type>classic</type>
+    <thelia>2.0.3</thelia>
+    <stability>alpha</stability>
+</module>
