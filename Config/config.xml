@@ -22,17 +22,25 @@
         -->
     </commands>
 
-    <!--
     <services>
-
+        <service id="lengow.csv_formatter" class="Lengow\Export\LengowFormatter">
+            <tag name="thelia.formatter" />
+        </service>
     </services>
-    -->
 
-    <!--
+
     <exports>
-
+        <export id="export.lengow" class="Lengow\Export\LengowExport" category_id="thelia.export.modules">
+            <export_descriptive locale="fr_FR">
+                <title>Export pour lengow</title>
+                <description>Exportez votre catalogue pour Lengow</description>
+            </export_descriptive>
+            <export_descriptive locale="en_US">
+                <title>Lengow Export</title>
+                <description>Export your catalog for Lengow</description>
+            </export_descriptive>
+        </export>
     </exports>
-    -->
 
     <!--
     <imports>
