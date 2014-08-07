@@ -74,13 +74,13 @@ class ExportController extends BaseExportController
         return $response;
     }
 
-    protected function buildPath($path, $checkRead = false, $checkWrite = false)
+    public function buildPath($path, $checkRead = false, $checkWrite = false, $create = 'none')
     {
         if (!file_exists($path)) {
             $parent = dirname($path);
 
             if (!file_exists($parent)) {
-                $this->buildPath($parent, false, true);
+                $this->buildPath($parent, false, true, 'dir');
 
             } elseif (!is_writable($parent)) {
                 $this->throwFileException(
@@ -90,6 +90,20 @@ class ExportController extends BaseExportController
                             "%path" => $path,
                         ]
                 );
+            } else {
+                if ($create === 'file') {
+                    if (!touch($path)) {
+                        $this->throwFileException(
+                            "Unable to create the file %path",["%path"=>$path]
+                        );
+                    }
+                } elseif ($create === 'dir') {
+                    if (!mkdir($path)) {
+                        $this->throwFileException(
+                            "Unable to create the directory %path",["%path"=>$path]
+                        );
+                    }
+                }
             }
         } else {
             if ($checkRead && !is_readable($path)) {
