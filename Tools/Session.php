@@ -32,7 +32,6 @@ class Session extends BaseSession
         parent::__construct($storage, $attributes, $flashes);
     }
 
-
     /**
      * @var \Thelia\Model\Cart
      */
@@ -49,4 +48,4 @@ class Session extends BaseSession
     {
         return $this->cart;
     }
-} 
+}

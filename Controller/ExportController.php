@@ -32,6 +32,7 @@ class ExportController extends BaseExportController
         /**
          * default is 1 hour
          */
+
         return (int) ConfigQuery::read("lengow_cache_time", 3600);
     }
 
@@ -81,7 +82,7 @@ class ExportController extends BaseExportController
             if (!file_exists($parent)) {
                 $this->buildPath($parent, false, true);
 
-            } elseif (!is_writable($parent))  {
+            } elseif (!is_writable($parent)) {
                 $this->throwFileException(
                         "The directory %parent is not writable, so the directory %path could not be created",
                         [
@@ -103,10 +104,10 @@ class ExportController extends BaseExportController
         return $path;
     }
 
-    protected function throwFileException($message, $args) {
+    protected function throwFileException($message, $args)
+    {
         throw new FileException(
             $this->getTranslator()->trans($message, $args, Lengow::MESSAGE_DOMAIN)
         );
     }
 }
-

@@ -20,4 +20,4 @@ namespace Lengow\Export;
 class LengowType
 {
     const LENGOW_EXPORT = "lengow.export.csv";
-} 
+}

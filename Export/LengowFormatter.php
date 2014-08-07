@@ -31,4 +31,4 @@ class LengowFormatter extends CSVFormatter
     {
         return LengowType::LENGOW_EXPORT;
     }
-} 
+}

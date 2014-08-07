@@ -90,7 +90,6 @@ class LengowExport extends ExportHandler
 
     }
 
-
     /**
      * @return string|array
      *
@@ -112,7 +111,7 @@ class LengowExport extends ExportHandler
     }
 
     /**
-     * @param  Lang $lang
+     * @param  Lang                         $lang
      * @return ModelCriteria|array|BaseLoop
      */
     public function buildDataSet(Lang $lang)
@@ -270,7 +269,7 @@ class LengowExport extends ExportHandler
 
     /**
      * @param $weight
-     * @param Country $shopCountry
+     * @param  Country           $shopCountry
      * @throws \RuntimeException
      * @throws DeliveryException
      *
