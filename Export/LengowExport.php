@@ -71,7 +71,7 @@ class LengowExport extends ExportHandler
         $this->session = new Session();
 
         $request->setSession($this->session);
-        $this->container->set('request', $request);
+        $this->fakeContainer->set('request', $request);
 
         /**
          * Get delivery modules
@@ -83,7 +83,9 @@ class LengowExport extends ExportHandler
         ;
 
         foreach ($this->deliveryModules as $deliveryModule) {
-            $this->moduleInstances[] = $moduleInstance = $deliveryModule->getModuleInstance($this->container);
+            $moduleInstance = $deliveryModule->getModuleInstance($this->container);
+            $moduleInstance->setContainer($this->fakeContainer);
+            $this->moduleInstances[] = $moduleInstance;
         }
 
     }
@@ -140,8 +142,6 @@ class LengowExport extends ExportHandler
         $description = null;
         $categoriesCache = [];
 
-        $featureCache = [];
-        $featureAvCache = [];
         $attributesCache = [];
         $attributesAvCache = [];
 
@@ -280,9 +280,9 @@ class LengowExport extends ExportHandler
     {
         $postage = null;
 
-        for ($i = 0; array_key_exists($i, $this->deliveryModules); ++$i) {
+        for ($i = 0; $this->deliveryModules->offsetExists($i); ++$i) {
 
-            $deliveryModule = $this->deliveryModules[$i];
+            $deliveryModule = $this->deliveryModules->get($i);
             $moduleInstance = $this->moduleInstances[$i];
 
             if (false === $moduleInstance instanceof DeliveryModuleInterface) {
@@ -292,9 +292,13 @@ class LengowExport extends ExportHandler
             try {
                 // Check if module is valid, by calling isValidDelivery(),
                 // or catching a DeliveryException.
-                if ($moduleInstance->isValidDelivery($shopCountry)) {
-                    $this->setProductIntoCart($pse);
-                    $postage = $moduleInstance->getPostage($shopCountry);
+                $this->setProductIntoCart($pse);
+                if ($moduleInstance->isValidDelivery($shopCountry) && (
+                        $postage === null |
+                        $postage > $currentPostage = $moduleInstance->getPostage($shopCountry)
+                    )
+                ) {
+                    $postage = $currentPostage;
                 }
             } catch (DeliveryException $e) {
                 // Module is not available
