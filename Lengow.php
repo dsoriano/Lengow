@@ -12,14 +12,18 @@
 
 namespace Lengow;
 
+use Propel\Runtime\Connection\ConnectionInterface;
+use Thelia\Install\Database;
 use Thelia\Module\BaseModule;
 
 class Lengow extends BaseModule
 {
-    /*
-     * You may now override BaseModuleInterface methods, such as:
-     * install, destroy, preActivation, postActivation, preDeactivation, postDeactivation
-     *
-     * Have fun !
-     */
+    const MESSAGE_DOMAIN = "lengow";
+
+    public function postActivation(ConnectionInterface $con = null)
+    {
+        $database = new Database($con);
+
+        $database->insertSql(null, [__DIR__ . "/Config/insert.sql"]);
+    }
 }
