@@ -58,20 +58,14 @@ class ExportController extends BaseExportController
                 $this->getSession()->getLang()
             );
 
-            file_put_contents($cachePath, $response->getContent());
+            $data = $response->getContent();
+
+            file_put_contents($cachePath, $response);
         } else {
-            $response = Response::create(
-                file_get_contents($cachePath),
-                200,
-                [
-                    "Content-Type" => $formatter->getMimeType(),
-                    "Content-Disposition" =>
-                        "attachment; filename=\"" . $formatter::FILENAME . "." . $formatter->getExtension() . "\"",
-                ]
-            );
+            $data = file_get_contents($cachePath);
         }
 
-        return $response;
+        return Response::create($data);
     }
 
     public function buildPath($path, $checkRead = false, $checkWrite = false, $create = 'none')
@@ -84,11 +78,11 @@ class ExportController extends BaseExportController
 
             } elseif (!is_writable($parent)) {
                 $this->throwFileException(
-                        "The directory %parent is not writable, so the directory %path could not be created",
-                        [
-                            "%parent" => $parent,
-                            "%path" => $path,
-                        ]
+                    "The directory %parent is not writable, so the directory %path could not be created",
+                    [
+                        "%parent" => $parent,
+                        "%path" => $path,
+                    ]
                 );
             } else {
                 if ($create === 'file') {
