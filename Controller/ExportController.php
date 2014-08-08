@@ -60,7 +60,7 @@ class ExportController extends BaseExportController
 
             $data = $response->getContent();
 
-            file_put_contents($cachePath, $response);
+            file_put_contents($cachePath, $data);
         } else {
             $data = file_get_contents($cachePath);
         }
