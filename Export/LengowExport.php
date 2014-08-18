@@ -14,28 +14,43 @@ namespace Lengow\Export;
 use Lengow\Tools\Session;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
+use Propel\Runtime\Collection\ArrayCollection;
+use Propel\Runtime\Collection\ObjectCollection;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Validator\Constraints\Collection;
 use Thelia\Core\Event\Image\ImageEvent;
 use Thelia\Core\Event\TheliaEvents;
 use Thelia\Core\HttpFoundation\Request;
 use Thelia\Core\Template\Element\BaseLoop;
 use Thelia\Core\Translation\Translator;
 use Thelia\ImportExport\Export\ExportHandler;
+use Thelia\Model\AttributeCombinationQuery;
+use Thelia\Model\AttributeQuery;
 use Thelia\Model\Cart;
-use Thelia\Model\CartItem;
 use Thelia\Model\CategoryQuery;
+use Thelia\Model\ConfigQuery;
 use Thelia\Model\Country;
 use Thelia\Model\Currency;
 use Thelia\Model\Lang;
-use Thelia\Model\ModuleQuery;
+use Thelia\Model\Map\AttributeAvI18nTableMap;
+use Thelia\Model\Map\AttributeAvTableMap;
+use Thelia\Model\Map\AttributeCombinationTableMap;
+use Thelia\Model\Map\AttributeI18nTableMap;
+use Thelia\Model\Map\AttributeTableMap;
+use Thelia\Model\Map\BrandI18nTableMap;
+use Thelia\Model\Map\BrandTableMap;
+use Thelia\Model\Map\CategoryI18nTableMap;
+use Thelia\Model\Map\CategoryTableMap;
+use Thelia\Model\Map\ProductI18nTableMap;
+use Thelia\Model\Map\ProductSaleElementsTableMap;
+use Thelia\Model\Map\ProductTableMap;
+use Thelia\Model\Product;
 use Thelia\Model\ProductQuery;
-use Thelia\Model\ProductSaleElements;
 use Thelia\Model\ProductSaleElementsQuery;
 use Thelia\Module\BaseModule;
-use Thelia\Module\DeliveryModuleInterface;
-use Thelia\Module\Exception\DeliveryException;
 use Thelia\TaxEngine\Calculator;
+use Thelia\Tools\I18n;
 
 /**
  * Class LengowExport
@@ -44,52 +59,6 @@ use Thelia\TaxEngine\Calculator;
  */
 class LengowExport extends ExportHandler
 {
-    /** @var  Container */
-    protected $fakeContainer;
-
-    /** @var  Session */
-    protected $session;
-
-    /** @var Cart */
-    protected $cart;
-
-    /** @var  \Thelia\Model\Module[] */
-    protected $deliveryModules;
-
-    /** @var BaseModule[] */
-    protected $moduleInstances = array();
-
-    public function __construct(ContainerInterface $container)
-    {
-        parent::__construct($container);
-
-        /**
-         * Define tools to emulate a cart for delivery postage computing
-         */
-        $this->fakeContainer = new Container();
-        $request = new Request();
-        $this->session = new Session();
-
-        $request->setSession($this->session);
-        $this->fakeContainer->set('request', $request);
-
-        /**
-         * Get delivery modules
-         */
-        $this->deliveryModules = ModuleQuery::create()
-            ->filterByActivate(1)
-            ->filterByType(BaseModule::DELIVERY_MODULE_TYPE, Criteria::EQUAL)
-            ->find()
-        ;
-
-        foreach ($this->deliveryModules as $deliveryModule) {
-            $moduleInstance = $deliveryModule->getModuleInstance($this->container);
-            $moduleInstance->setContainer($this->fakeContainer);
-            $this->moduleInstances[] = $moduleInstance;
-        }
-
-    }
-
     /**
      * @return string|array
      *
@@ -116,206 +85,512 @@ class LengowExport extends ExportHandler
      */
     public function buildDataSet(Lang $lang)
     {
+        /**
+         * Prevents time limit hints
+         */
+        set_time_limit(0);
+
+        /**
+         * Country / Currency
+         */
         $shopCountry = Country::getShopLocation();
         $defaultCurrency = Currency::getDefaultCurrency();
         $defaultCurrencyCode = $defaultCurrency->getCode();
-
-        $event = new ImageEvent($this->getRequest());
         $locale = $lang->getLocale();
 
+        /**
+         * Images events
+         */
+        $event = new ImageEvent($this->getRequest());
+        $eventSmallImage = new ImageEvent($this->getRequest());
+        $eventSmallImage->setHeight(100);
+        $eventSmallImage->setWidth(100);
+
+        /**
+         * Tools
+         */
         $calculator = new Calculator();
 
-        $pses = ProductSaleElementsQuery::create()
-            ->orderByProductId()
+        /**
+         * Configuration variables
+         */
+        $minStock = ConfigQuery::read("lengow_min_quantity_export", 3);
+        $deliveryPrice = ConfigQuery::read("lengow_delivery_price", "5.90");
+        $freeDeliveryAmount = ConfigQuery::read("lengow_free_delivery_price", 60);
+
+        // 35,41,40,39,15,18,25,26,24,27,29,47,64,63,66,67,68,51)
+        $excludeCategories = explode(",", ConfigQuery::read("lengow_category_exclude", ""));
+
+        if (empty($excludeCategories)) {
+            $excludeCategories = "-1";
+        }
+
+        /**
+         * Build categories tree ( id => top level name )
+         */
+        $categories = $this->generateTree($locale);
+
+        $productsQuery = ProductQuery::create()
+            ->orderById()
+            ->useProductSaleElementsQuery()
+                ->where(ProductSaleElementsTableMap::QUANTITY ." > 0")
+                ->having("COUNT(".ProductSaleElementsTableMap::ID.") > ?", $minStock, \PDO::PARAM_INT)
+            ->endUse()
+            ->useProductCategoryQuery(null, Criteria::LEFT_JOIN)
+                ->addAsColumn("category_ID", CategoryTableMap::ID)
+                ->filterByDefaultCategory(1)
+                ->useCategoryQuery(null, Criteria::LEFT_JOIN)
+                    ->useCategoryI18nQuery()
+                        ->addAsColumn("rubric_TITLE", CategoryI18nTableMap::TITLE)
+                    ->endUse()
+                ->endUse()
+            ->endUse()
+            ->useProductI18nQuery()
+                ->addAsColumn("product_TITLE", ProductI18nTableMap::TITLE)
+                ->addAsColumn("product_DESCRIPTION", ProductI18nTableMap::DESCRIPTION)
+            ->endUse()
+            ->useBrandQuery(null, Criteria::LEFT_JOIN)
+                ->useBrandI18nQuery()
+                    ->addAsColumn("brand_TITLE", BrandI18nTableMap::TITLE)
+                ->endUse()
+            ->endUse()
+            ->useProductCategoryQuery()
+                ->useCategoryQuery()
+                    ->filterById($excludeCategories, Criteria::NOT_IN)
+                    ->filterByVisible(1)
+                ->endUse()
+            ->endUse()
+            ->filterByVisible(1)
+            ->groupById()
+            ->select(ProductTableMap::getFieldNames())
+        ;
+
+        I18n::addI18nCondition(
+            $productsQuery,
+            BrandI18nTableMap::TABLE_NAME,
+            BrandTableMap::ID,
+            BrandI18nTableMap::ID,
+            BrandI18nTableMap::LOCALE,
+            $locale
+        );
+
+        I18n::addI18nCondition(
+            $productsQuery,
+            ProductI18nTableMap::TABLE_NAME,
+            ProductTableMap::ID,
+            ProductI18nTableMap::ID,
+            ProductI18nTableMap::LOCALE,
+            $locale
+        );
+
+        I18n::addI18nCondition(
+            $productsQuery,
+            CategoryI18nTableMap::TABLE_NAME,
+            CategoryTableMap::ID,
+            CategoryI18nTableMap::ID,
+            CategoryI18nTableMap::LOCALE,
+            $locale
+        );
+
+        /** @var ProductQuery $productsQuery */
+        $products = $this->fetch(
+            $productsQuery->find(),
+            $productIds
+        );
+
+        /**
+         * Get product sale elements filtered by products ids
+         */
+        $productSaleElements = ProductSaleElementsQuery::create()
+            ->filterByProductId($productIds, Criteria::IN)
+            ->orderByProductId(Criteria::DESC)
             ->find()
         ;
 
-        $products = ProductQuery::create()
-            ->orderById(Criteria::DESC)
-            ->find()
-        ;
+        $attributes = $this->getAttributesTable($productSaleElements, $locale);
 
-        /** @var \Thelia\Model\Product $product */
-        $product = null;
-        $title = null;
-        $description = null;
-        $categoriesCache = [];
-
-        $attributesCache = [];
-        $attributesAvCache = [];
+        /** @var \Thelia\Model\ProductSaleElements $productSaleElement */
+        $productSaleElement = $productSaleElements->pop();
 
         $dataSet = [];
 
-        /** @var \Thelia\Model\ProductSaleElements $pse */
-        foreach ($pses as $pse) {
-            if ($product === null || $product->getId() !== $pse->getProductId()) {
-                $product = $products->pop();
-
-                if ($product->getId() !== $pse->getProductId()) {
-                    throw new \LogicException(
-                        Translator::getInstance()->trans(
-                            "The product id can't be different on product sale elements. Please check your sql foreign key constraints"
-                        )
-                    );
-                }
-
-                $product->setLocale($locale);
-
-                $title = $product->getTitle();
-                $description = $product->getDescription();
-
-                if (!isset($categoriesCache[$product->getDefaultCategoryId()])) {
-                    $categoriesCache[$product->getDefaultCategoryId()] = CategoryQuery::create()
-                        ->findPk($product->getDefaultCategoryId())
-                        ->setLocale($locale)
-                        ->getTitle()
-                    ;
-                }
-            }
-
+        /** @var \Thelia\Model\Product $product */
+        foreach ($products as $product) {
+            /**
+             * Generate the rows
+             */
             $row = [];
 
-            $row["id"] = $pse->getId();
+            /**
+             * Add attributes columns
+             */
+            foreach ($attributes["attributes"] as $attribute) {
+                $row[$attribute] = null;
+            }
+
+            $attributeList = isset($attributes["data"][$product->getId()]["attributes"]) ?
+                $attributes["data"][$product->getId()]["attributes"] :
+                []
+            ;
+
+            $row["features"] = implode(",", $attributeList);
 
             /**
              * Add product's title, description and category
              */
-            $row["title"] = $title;
-            $row["description"] = $description;
-            $row["category"] = $categoriesCache[$product->getDefaultCategoryId()];
-
-            $row["postage"] = $this->getPostage($pse, $shopCountry);
-
-            /**
-             * Compute Attributes
-             */
-            $attributes = [];
-            foreach ($pse->getAttributeCombinations() as $attributeCombination) {
-                $attributeId = $attributeCombination->getAttributeId();
-                if (!array_key_exists($attributeId, $attributesCache)) {
-                    $attributesCache[$attributeId] = $this->escape(
-                        $attributeCombination
-                            ->getAttribute()
-                            ->setLocale($locale)
-                            ->getTitle()
-                    );
-                }
-
-                $attributeAvId = $attributeCombination->getAttributeAvId();
-                if (!array_key_exists($attributeAvId, $attributesAvCache)) {
-                    $attributesAvCache[$attributeAvId] = $this->escape(
-                        $attributeCombination
-                            ->getAttributeAv()
-                            ->setLocale($locale)
-                            ->getTitle()
-                    );
-                }
-
-                $attributes[] = $attributesCache[$attributeId] . ":" . $attributesAvCache[$attributeAvId];
-            }
-
-            $row["attributes"] = implode(",", $attributes);
-
-            /**
-             * Get product Taxed price
-             */
-            $prices = $pse->getPricesByCurrency($defaultCurrency);
-            $calculator->load($product, $shopCountry);
-            $promoPrice = $calculator->getTaxedPrice($prices->getPromoPrice());
-            $price = $calculator->getTaxedPrice($prices->getPrice());
-
-
-            $row["price"] = $pse->getPromo() ? $promoPrice : $price;
-            $row["crossed_out_price"] = $pse->getPromo() ? $price : null;
-
-            $row["stock"] = $pse->getQuantity();
-            $row["url"] = $pse->getProduct()->getUrl($locale);
-            $row["weight"] = $pse->getWeight(); // Kg
+            $row["id"] = $product->getId();
+            $row["parent_id"] = $product->getId();
+            $row["is_parent"] = "1";
+            $row["ref"] = $product->getRef();
+            $row["title"] = $product->getVirtualColumn("product_TITLE");
+            $row["breadcrumb"] = $categories[(int) $product->getVirtualColumn("category_ID")];
+            $row["brand"] = $product->getVirtualColumn("brand_TITLE");
+            $row["updated_at"] = $product->getUpdatedAt($lang->getDatetimeFormat());
+            $row["url"] = $product->getUrl($locale);
             $row["currency"] = $defaultCurrencyCode;
 
+            $description = $product->getVirtualColumn("product_DESCRIPTION");
+            $description = str_replace("&nbsp;", "", strip_tags($description));
+            $description = str_replace("\r\n", " ", $description);
+            $description = str_replace("Caractéristiques :", "", $description);
+            $row["description"] = trim($description);
             /**
-             * Compute the image url
+             * Compute the images url
              */
             $row["url_image"] = null;
+            $row["url_image_small"] = null;
             $images = $product->getProductImages();
 
             if ($images->count() > 0) {
                 /** @var \Thelia\Model\ProductImage $image */
                 $image = $images->get(0);
 
-                $event->setSourceFilepath($image->getUploadDir() . DS . $image->getFile());
-                $event->setCacheSubdirectory(basename($image->getUploadDir()));
+                $sourceFilepath = $image->getUploadDir() . DS . $image->getFile();
+                $cacheSubdirectory = basename($image->getUploadDir());
 
+                $event->setSourceFilepath($sourceFilepath);
+                $event->setCacheSubdirectory($cacheSubdirectory);
+
+                /**
+                 * Get real size image link
+                 */
                 $dispatcher = $this->container->get('event_dispatcher');
                 // Dispatch image processing event
                 $dispatcher->dispatch(TheliaEvents::IMAGE_PROCESS, $event);
                 $row["url_image"] = $event->getFileUrl();
+
+                /**
+                 * Get small size image link
+                 */
+                $eventSmallImage->setSourceFilepath($sourceFilepath);
+                $eventSmallImage->setCacheSubdirectory($cacheSubdirectory);
+
+                $dispatcher->dispatch(TheliaEvents::IMAGE_PROCESS, $eventSmallImage);
+                $row["url_image_small"] = $eventSmallImage->getFileUrl();
+            }
+
+            /**
+             * Add pse_related_columns
+             */
+            $row["is_new"] = null;
+            $row["price"] = null;
+            $row["postage"] = null;
+            $row["crossed_out_price"] = null;
+            $row["stock"] = null;
+            $row["promo"] = null;
+            $row["ean"] = null;
+
+            /**
+             * Get everything about product sale elements
+             */
+            $pseRows = [];
+            while ($productSaleElement !== null && $productSaleElement->getProductId() == $product->getId()) {
+                $pseRow = $row;
+
+                $pseRow["id"] .= "_" . $productSaleElement->getId();
+                $pseRow["ref"] = $productSaleElement->getRef();
+                $pseRow["ean"] = $productSaleElement->getEanCode();
+                $pseRow["is_parent"] = "0";
+                $pseRow["is_new"] = $productSaleElement->getNewness();
+                $prices = $productSaleElement->getPricesByCurrency($defaultCurrency);
+                $calculator->load($product, $shopCountry);
+                $promoPrice = $calculator->getTaxedPrice($prices->getPromoPrice());
+                $price = $calculator->getTaxedPrice($prices->getPrice());
+
+                $pseRow["price"] = round($productSaleElement->getPromo() ? $promoPrice : $price, 2);
+
+                /**
+                 * Delivery postage and prices
+                 */
+                $pseRow["postage"] = $pseRow["price"] >= $freeDeliveryAmount ? "0" : $deliveryPrice;
+                $pseRow["crossed_out_price"] = $productSaleElement->getPromo() ? round($price, 2) : null;
+
+                $pseRow["stock"] = $productSaleElement->getQuantity();
+
+                $pseRow["promo"] = (int) $productSaleElement->getPromo();
+
+                /**
+                 * Set Attributes / Attribute av
+                 */
+                if (isset($attributes["data"][$product->getId()]["pse"][$productSaleElement->getId()])) {
+                    $attributeRow = $attributes["data"][$product->getId()]["pse"][$productSaleElement->getId()];
+
+                    for ($i = 0; $i < count($attributeRow["attributes"]); ++$i) {
+                        $pseRow[$attributeRow["attributes"][$i]] = $attributeRow["attributes_av"][$i];
+                    }
+                }
+
+                $pseRows[] = $pseRow;
+                $productSaleElement = $productSaleElements->pop();
             }
 
             $dataSet[] = $row;
 
+            foreach ($pseRows as $pseRow) {
+                $dataSet[] = $pseRow;
+            }
         }
 
         return $dataSet;
     }
 
-    public function escape($value)
+    protected function fetch(ArrayCollection $col, &$ids)
     {
-        $value =  str_replace(":", " ", $value);
-        $value = str_replace(",", " ", $value);
+        $objCol = [];
+        $ids = [];
 
-        return $value;
-    }
+        foreach ($col as $array) {
+            $obj = new Product();
 
-    /**
-     * @param $weight
-     * @param  Country           $shopCountry
-     * @throws \RuntimeException
-     * @throws DeliveryException
-     *
-     * This method is similar to Thelia Smarty plugin CartPostage
-     */
-    public function getPostage(ProductSaleElements $pse, Country $shopCountry)
-    {
-        $postage = null;
+            $ids[] = $array["Id"];
+            $obj->setId($array["Id"]);
+            $obj->setRef($array["Ref"]);
+            $obj->setBrandId($array["BrandId"]);
+            $obj->setVirtualColumn("brand_TITLE", $array["brand_TITLE"]);
+            $obj->setUpdatedAt($array["UpdatedAt"]);
+            $obj->setTaxRuleId($array["TaxRuleId"]);
 
-        for ($i = 0; $this->deliveryModules->offsetExists($i); ++$i) {
+            $obj->setVirtualColumn("product_TITLE", $array["product_TITLE"]);
+            $obj->setVirtualColumn("product_DESCRIPTION", $array["product_DESCRIPTION"]);
+            $obj->setVirtualColumn("rubric_TITLE", $array["rubric_TITLE"]);
+            $obj->setVirtualColumn("category_ID", $array["category_ID"]);
 
-            $deliveryModule = $this->deliveryModules->get($i);
-            $moduleInstance = $this->moduleInstances[$i];
-
-            if (false === $moduleInstance instanceof DeliveryModuleInterface) {
-                throw new \RuntimeException(sprintf("delivery module %s is not a Thelia\Module\DeliveryModuleInterface", $deliveryModule->getCode()));
-            }
-
-            try {
-                // Check if module is valid, by calling isValidDelivery(),
-                // or catching a DeliveryException.
-                $this->setProductIntoCart($pse);
-                if ($moduleInstance->isValidDelivery($shopCountry) && (
-                        $postage === null |
-                        $postage > $currentPostage = $moduleInstance->getPostage($shopCountry)
-                    )
-                ) {
-                    $postage = $currentPostage;
-                }
-            } catch (DeliveryException $e) {
-                // Module is not available
-            }
+            $obj->setNew(false);
+            $objCol[] = $obj;
         }
 
-        return $postage;
+        return $objCol;
     }
 
-    public function setProductIntoCart(ProductSaleElements $pse)
+    public function generateTree($locale)
     {
-        $this->cart = new Cart();
-        $this->session->setCart($this->cart);
+        /**
+         * Get Ids and Titles
+         */
+        $CategoriesQuery = CategoryQuery::create()
+            ->useCategoryI18nQuery()
+                ->addAsColumn("category_TITLE", CategoryI18nTableMap::TITLE)
+            ->endUse()
+            ->addAsColumn("parent", CategoryTableMap::PARENT)
+            ->addAsColumn("id", CategoryTableMap::ID)
+            ->select([
+                "id",
+                "category_TITLE",
+                "parent",
+            ])
+        ;
 
-        $cartItem = new CartItem();
-        $cartItem->setProductSaleElements($pse);
-        $cartItem->setQuantity(1);
+        I18n::addI18nCondition(
+            $CategoriesQuery,
+            CategoryI18nTableMap::TABLE_NAME,
+            CategoryTableMap::ID,
+            CategoryI18nTableMap::ID,
+            CategoryI18nTableMap::LOCALE,
+            $locale
+        );
 
-        $this->cart->addCartItem($cartItem);
+        /** @var  $topTitles */
+        $rawCategoriesTree = $CategoriesQuery->find();
+
+        /**
+         * Format the arrays correctly
+         */
+        $ids = [];
+        $titles = [];
+        foreach ($rawCategoriesTree as $idParent) {
+            $ids[$idParent["id"]] = (int) $idParent["parent"];
+            $titles[$idParent["id"]] = $idParent["category_TITLE"];
+        }
+
+        /**
+         * Then build the breadcrumbs
+         */
+        $breadcrumbs = [];
+
+        foreach ($ids as $id => $parent) {
+            $breadcrumbTable = [];
+
+            $parentBreadcrumb = null;
+            $parents = [];
+
+            /**
+             * Build parent tree or get the parent breadcrumb if exists
+             */
+            while ($parent !== 0) {
+                if (!isset($breadcrumbs[$parent])) {
+                    array_unshift($parents, $parent);
+                    $parent = $ids[$parent];
+                } else {
+                    $parentBreadcrumb = $breadcrumbs[$parent];
+                    break;
+                }
+            }
+
+            /**
+             * Build the parents breadcrumbs if needed
+             */
+            while (null !== $parentId = array_pop($parents)) {
+                $buildArray =  [];
+                if (null !== $parentBreadcrumb) {
+                    array_push($buildArray, $parentBreadcrumb);
+                }
+
+                array_push($buildArray, $titles[$parentId]);
+
+                $parentBreadcrumb = implode(" > ", $buildArray);
+                $breadcrumbs[$parentId] = $parentBreadcrumb;
+            }
+
+
+            if (null !== $parentBreadcrumb) {
+                array_push($breadcrumbTable, $parentBreadcrumb);
+            }
+
+            array_push($breadcrumbTable, $titles[$id]);
+            $breadcrumbs[$id] = implode(" > ", $breadcrumbTable);
+        }
+
+        return $breadcrumbs;
     }
+
+    protected function getAttributesTable(ObjectCollection $productSaleElements, $locale)
+    {
+        $attributesQuery = AttributeCombinationQuery::create()
+            ->filterByProductSaleElements($productSaleElements)
+            ->useAttributeAvQuery(null, Criteria::LEFT_JOIN)
+                ->useAttributeAvI18nQuery()
+                    ->addAsColumn("attribute_av", AttributeI18nTableMap::TITLE)
+                ->endUse()
+            ->endUse()
+            ->useAttributeQuery(null, Criteria::LEFT_JOIN)
+                ->orderByPosition()
+                ->useAttributeI18nQuery()
+                    ->addAsColumn("attribute", AttributeI18nTableMap::TITLE)
+                ->endUse()
+            ->endUse()
+            ->useProductSaleElementsQuery()
+                ->addAsColumn("product_id", ProductSaleElementsTableMap::PRODUCT_ID)
+            ->endUse()
+            ->select([
+                AttributeCombinationTableMap::PRODUCT_SALE_ELEMENTS_ID,
+                "product_id",
+                "attribute",
+                "attribute_av",
+            ])
+        ;
+
+        I18n::addI18nCondition(
+            $attributesQuery,
+            AttributeAvI18nTableMap::TABLE_NAME,
+            AttributeAvTableMap::ID,
+            AttributeAvI18nTableMap::ID,
+            AttributeAvI18nTableMap::LOCALE,
+            $locale
+        );
+
+        I18n::addI18nCondition(
+            $attributesQuery,
+            AttributeI18nTableMap::TABLE_NAME,
+            AttributeTableMap::ID,
+            AttributeI18nTableMap::ID,
+            AttributeI18nTableMap::LOCALE,
+            $locale
+        );
+
+        $attributes = $attributesQuery
+            ->find()
+            ->toArray()
+        ;
+
+        $formattedTable = [];
+        $data = [];
+        $formattedTable["data"] = &$data;
+        $formattedTable["attributes"] = [];
+
+        foreach ($attributes as $attribute) {
+            $productId = $attribute["product_id"];
+            $pseId = $attribute[AttributeCombinationTableMap::PRODUCT_SALE_ELEMENTS_ID];
+
+            if (!isset($data[$productId])) {
+                $data[$productId] = [
+                    "pse" => [],
+                    "attributes" => [],
+                ];
+            }
+
+            if (!isset($data[$productId]["pse"][$pseId])) {
+                $data[$productId]["pse"][$pseId] = [
+                    "attributes" => [],
+                    "attributes_av" => [],
+                ];
+            }
+
+            $row = &$data[$productId];
+
+            if (!in_array($attribute["attribute"], $formattedTable["attributes"])) {
+                $formattedTable["attributes"][] = $attribute["attribute"];
+            }
+
+
+            if (!in_array($attribute["attribute"], $row["attributes"])) {
+                $row["attributes"][] = $attribute["attribute"];
+            }
+
+            $pseRow = &$row["pse"][$pseId];
+            $pseRow["attributes"][] = $attribute["attribute"];
+            $pseRow["attributes_av"][] = $attribute["attribute_av"];
+        }
+
+        return $formattedTable;
+    }
+
+    public function getOrder()
+    {
+        return [
+            "id",
+            "parent_id",
+            "is_parent",
+            "ref",
+            "title",
+            "description",
+            "breadcrumb",
+            "brand",
+            "updated_at",
+            "url",
+            "url_image",
+            "url_image_small",
+            "ean",
+            "price",
+            "crossed_out_price",
+            "currency",
+            "promo",
+            "stock",
+            "postage",
+            "is_new",
+            "features",
+            // Then the features
+        ];
+    }
+
+
 }

@@ -16,11 +16,11 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Thelia\Tests\Controller\ControllerTestBase;
 
 /**
- * Class TestController
+ * Class ControllerTest
  * @package Lengow\Tests
  * @author Benjamin Perche <bperche@openstudio.fr>
  */
-class TestController extends ControllerTestBase
+class ControllerTest extends ControllerTestBase
 {
     /**
      * @var ExportController
