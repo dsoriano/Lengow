@@ -1,0 +1,85 @@
+<div class="general-block-decorator">
+    <div class="title title-without-tabs">
+        {intl l="Configure Lengow" d="lengow"}
+    </div>
+
+    <div class="form-container">
+        <div class="row">
+            <div class="col-md-12">
+            {form name="lengow-configuration"}
+                {if $form_error}<div class="alert alert-danger">{$form_error_message}</div>{/if}
+                <form class="clearfix" action="{url path='/admin/module/lengow/configuration'}" method="POST" {form_enctype form=$form}>
+                    {include
+                        file="includes/inner-form-toolbar.html"
+                        hide_flags=true
+                        close_url={url path='/admin/modules'}
+                    }
+
+                    {form_hidden_fields form=$form}
+
+                    {if $success_message}
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="alert alert-success">
+                                     {$success_message}
+                                </div>
+                            </div>
+                        </div>
+                    {/if}
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            {form_field form=$form field="delivery-price"}
+                                <div class="form-group {if $error}has-error{/if}">
+                                    <label class="control-label" for="{$label_attr.for}">
+                                        {$label} <span class="required">*</span>
+
+                                        {form_error form=$form field="delivery-price"}
+                                            <br />
+                                            <span class="error">{$message}</span>
+                                        {/form_error}
+                                    </label>
+
+                                    <input id="{$label_attr.for}" name="{$name}" value="{$value}" aria-required="true" type="number" class="form-control" required pattern="[0-9]+([\.|,][0-9]+)?" step="0.01" />
+                                </div>
+                            {/form_field}
+                        </div>
+                        <div class="col-md-6">
+                            {form_field form=$form field="free-shipping-amount"}
+                            <div class="form-group {if $error}has-error{/if}">
+                                <label class="control-label" for="{$label_attr.for}">
+                                    {$label}
+
+                                    {form_error form=$form field="free-shipping-amount"}
+                                        <br />
+                                        <span class="error">{$message}</span>
+                                    {/form_error}
+                                </label>
+
+                                <input id="{$label_attr.for}" name="{$name}" value="{$value}" type="number" class="form-control" pattern="[0-9]+([\.|,][0-9]+)?" step="0.01" />
+                            </div>
+                            {/form_field}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            {render_form_field form=$form field="min-stock"}
+                        </div>
+                        <div class="col-md-6">
+                            {render_form_field form=$form field="front-cache-time"}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            {render_form_field form=$form field="allowed-attributes-ids"}
+                        </div>
+                        <div class="col-md-6">
+                            {render_form_field form=$form field="exclude-categories-ids"}
+                        </div>
+                    </div>
+                </form>
+                {/form}
+            </div>
+        </div>
+    </div>
+</div>

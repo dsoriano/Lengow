@@ -11,28 +11,31 @@
 /*************************************************************************************/
 
 namespace Lengow\Export;
-use Lengow\Tools\Session;
+
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Runtime\Collection\ArrayCollection;
 use Propel\Runtime\Collection\ObjectCollection;
-use Symfony\Component\DependencyInjection\Container;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+
 use Symfony\Component\Validator\Constraints\Collection;
+
 use Thelia\Core\Event\Image\ImageEvent;
 use Thelia\Core\Event\TheliaEvents;
-use Thelia\Core\HttpFoundation\Request;
 use Thelia\Core\Template\Element\BaseLoop;
-use Thelia\Core\Translation\Translator;
 use Thelia\ImportExport\Export\ExportHandler;
-use Thelia\Model\AttributeCombinationQuery;
-use Thelia\Model\AttributeQuery;
-use Thelia\Model\Cart;
-use Thelia\Model\CategoryQuery;
-use Thelia\Model\ConfigQuery;
+
 use Thelia\Model\Country;
 use Thelia\Model\Currency;
 use Thelia\Model\Lang;
+use Thelia\Model\Product;
+
+use Thelia\Model\AttributeCombinationQuery;
+use Thelia\Model\CategoryQuery;
+use Thelia\Model\ConfigQuery;
+use Thelia\Model\ProductQuery;
+use Thelia\Model\ProductSaleElementsQuery;
+
+
 use Thelia\Model\Map\AttributeAvI18nTableMap;
 use Thelia\Model\Map\AttributeAvTableMap;
 use Thelia\Model\Map\AttributeCombinationTableMap;
@@ -45,10 +48,7 @@ use Thelia\Model\Map\CategoryTableMap;
 use Thelia\Model\Map\ProductI18nTableMap;
 use Thelia\Model\Map\ProductSaleElementsTableMap;
 use Thelia\Model\Map\ProductTableMap;
-use Thelia\Model\Product;
-use Thelia\Model\ProductQuery;
-use Thelia\Model\ProductSaleElementsQuery;
-use Thelia\Module\BaseModule;
+
 use Thelia\TaxEngine\Calculator;
 use Thelia\Tools\I18n;
 
@@ -233,7 +233,7 @@ class LengowExport extends ExportHandler
                 []
             ;
 
-            $row["features"] = implode(",", $attributeList);
+            $row["attributes"] = implode(",", $attributeList);
 
             /**
              * Add product's title, description and category
@@ -475,6 +475,8 @@ class LengowExport extends ExportHandler
 
     protected function getAttributesTable(ObjectCollection $productSaleElements, $locale)
     {
+        $allowedAttributes = ConfigQuery::read("lengow_allowed_attributes_id");
+
         $attributesQuery = AttributeCombinationQuery::create()
             ->filterByProductSaleElements($productSaleElements)
             ->useAttributeAvQuery(null, Criteria::LEFT_JOIN)
@@ -483,6 +485,9 @@ class LengowExport extends ExportHandler
                 ->endUse()
             ->endUse()
             ->useAttributeQuery(null, Criteria::LEFT_JOIN)
+                ->_if(!empty($allowedAttributes))
+                    ->filterById(explode(",", $allowedAttributes), Criteria::IN)
+                ->_endif()
                 ->orderByPosition()
                 ->useAttributeI18nQuery()
                     ->addAsColumn("attribute", AttributeI18nTableMap::TITLE)
@@ -587,8 +592,8 @@ class LengowExport extends ExportHandler
             "stock",
             "postage",
             "is_new",
-            "features",
-            // Then the features
+            "attributes",
+            // Then the attributes
         ];
     }
 

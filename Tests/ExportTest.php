@@ -13,11 +13,8 @@
 namespace Lengow\Tests;
 use Lengow\Export\LengowExport;
 use Symfony\Component\DependencyInjection\Container;
-use Symfony\Component\Routing\Router;
-use Thelia\Core\DependencyInjection\Loader\XmlFileLoader;
 use Thelia\Core\Translation\Translator;
 use Thelia\Model\CategoryQuery;
-use Thelia\Model\Lang;
 use Thelia\Tools\URL;
 
 /**
@@ -60,10 +57,5 @@ class ExportTest extends \PHPUnit_Framework_TestCase
                 $generatedBreadcrumb
             );
         }
-    }
-
-    public function testExport()
-    {
-       $test = $this->handler->buildData(Lang::getDefaultLanguage());
     }
 }

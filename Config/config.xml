@@ -11,9 +11,7 @@
     </loops>
 
     <forms>
-        <!--
-        <form name="MyFormName" class="MyModule\Form\MySuperForm" />
-        -->
+        <form name="lengow-configuration" class="Lengow\Form\LengowConfigForm" />
     </forms>
 
     <commands>
