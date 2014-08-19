@@ -35,7 +35,6 @@ use Thelia\Model\ConfigQuery;
 use Thelia\Model\ProductQuery;
 use Thelia\Model\ProductSaleElementsQuery;
 
-
 use Thelia\Model\Map\AttributeAvI18nTableMap;
 use Thelia\Model\Map\AttributeAvTableMap;
 use Thelia\Model\Map\AttributeCombinationTableMap;
@@ -461,7 +460,6 @@ class LengowExport extends ExportHandler
                 $breadcrumbs[$parentId] = $parentBreadcrumb;
             }
 
-
             if (null !== $parentBreadcrumb) {
                 array_push($breadcrumbTable, $parentBreadcrumb);
             }
@@ -481,7 +479,7 @@ class LengowExport extends ExportHandler
             ->filterByProductSaleElements($productSaleElements)
             ->useAttributeAvQuery(null, Criteria::LEFT_JOIN)
                 ->useAttributeAvI18nQuery()
-                    ->addAsColumn("attribute_av", AttributeI18nTableMap::TITLE)
+                    ->addAsColumn("attribute_av", AttributeAvI18nTableMap::TITLE)
                 ->endUse()
             ->endUse()
             ->useAttributeQuery(null, Criteria::LEFT_JOIN)
@@ -556,7 +554,6 @@ class LengowExport extends ExportHandler
                 $formattedTable["attributes"][] = $attribute["attribute"];
             }
 
-
             if (!in_array($attribute["attribute"], $row["attributes"])) {
                 $row["attributes"][] = $attribute["attribute"];
             }
@@ -596,6 +593,5 @@ class LengowExport extends ExportHandler
             // Then the attributes
         ];
     }
-
 
 }

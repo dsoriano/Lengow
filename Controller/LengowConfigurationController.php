@@ -77,4 +77,4 @@ class LengowConfigurationController extends BaseAdminController
             )
         );
     }
-} 
+}

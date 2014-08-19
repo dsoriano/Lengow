@@ -207,4 +207,4 @@ class LengowConfigForm extends BaseForm
         return "lengow-configuration-form";
     }
 
-} 
+}
