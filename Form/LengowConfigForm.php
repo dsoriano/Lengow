@@ -12,10 +12,17 @@
 
 namespace Lengow\Form;
 use Lengow\Lengow;
+use Propel\Runtime\ActiveQuery\Criteria;
+use Symfony\Component\Validator\Constraints\Callback;
 use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
+use Symfony\Component\Validator\ExecutionContextInterface;
 use Thelia\Core\Translation\Translator;
 use Thelia\Form\BaseForm;
+use Thelia\Model\AttributeQuery;
+use Thelia\Model\CategoryQuery;
 use Thelia\Model\ConfigQuery;
+use Thelia\Model\Map\AttributeTableMap;
+use Thelia\Model\Map\CategoryTableMap;
 
 /**
  * Class LengowConfigForm
@@ -89,15 +96,107 @@ class LengowConfigForm extends BaseForm
                 "label" => $translator->trans("Allowed attributes ids (separated by comas)", [], Lengow::MESSAGE_DOMAIN),
                 "label_attr" =>  ["for" => "allowed-attributes-ids"],
                 "required" => false,
+                "constraints" => [
+                    new Callback(
+                        [
+                            "methods" => [
+                                [$this, "checkAttributes"]
+                            ]
+                        ]
+                    )
+                ],
                 "data" => ConfigQuery::read("lengow_allowed_attributes_id"),
             ))
             ->add("exclude-categories-ids", "text", array(
                 "label" => $translator->trans("Categories ids to exclude from the export (separated by comas)", [], Lengow::MESSAGE_DOMAIN),
                 "label_attr" =>  ["for" => "exclude-categories-ids"],
                 "required" => false,
+                "constraints" => [
+                    new Callback(
+                        [
+                            "methods" => [
+                                [$this, "checkCategories"]
+                            ]
+                        ]
+                    )
+                ],
                 "data" => ConfigQuery::read("lengow_category_exclude"),
             ))
         ;
+    }
+
+    public function checkCategories($value, ExecutionContextInterface $context)
+    {
+        $value = str_replace("#\s#", "", $value);
+
+        if (!empty($value)) {
+            if (!preg_match("#^(\d+,)*\d+$#", $value)) {
+                $context->addViolation(
+                    Translator::getInstance()->trans(
+                        "This field is not valid, it must be like '1,2,3'"
+                    )
+                );
+            } else {
+                $ids = explode(",", $value);
+
+                $existingIds = CategoryQuery::create()
+                    ->filterById($ids, Criteria::IN)
+                    ->select(CategoryTableMap::ID)
+                    ->find()
+                    ->toArray()
+                ;
+
+                $notExistingIds = array_diff($ids, $existingIds);
+
+                if (!empty($notExistingIds)) {
+                    $context->addViolation(
+                        Translator::getInstance()->trans(
+                            "This category ids %ids doesn't exist",
+                            [
+                                "%ids" => implode(", ", $notExistingIds)
+                            ]
+                        )
+                    );
+                }
+            }
+        }
+    }
+
+    public function checkAttributes($value, ExecutionContextInterface $context)
+    {
+        $value = str_replace("#\s#", "", $value);
+
+        if (!empty($value)) {
+            if (!preg_match("#^(\d+,)*\d+$#", $value)) {
+                $context->addViolation(
+                    Translator::getInstance()->trans(
+                        "This field is not valid, it must be like '1,2,3'"
+                    )
+                );
+            } else {
+                $ids = explode(",", $value);
+
+                $existingIds = AttributeQuery::create()
+                    ->filterById($ids, Criteria::IN)
+                    ->select(AttributeTableMap::ID)
+                    ->find()
+                    ->toArray()
+                ;
+
+                $notExistingIds = array_diff($ids, $existingIds);
+
+                if (!empty($notExistingIds)) {
+                    $context->addViolation(
+                        Translator::getInstance()->trans(
+                            "This attribute ids %ids doesn't exist",
+                            [
+                                "%ids" => implode(", ", $notExistingIds)
+                            ]
+                        )
+                    );
+                }
+            }
+        }
     }
 
     /**
