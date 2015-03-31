@@ -11,6 +11,7 @@
 /*************************************************************************************/
 
 namespace Lengow\Controller;
+
 use Lengow\Form\LengowConfigForm;
 use Thelia\Controller\Admin\BaseAdminController;
 use Thelia\Core\Security\AccessManager;
@@ -59,7 +60,6 @@ class LengowConfigurationController extends BaseAdminController
                 $form
             );
         } else {
-
             if ($this->getRequest()->request->get("save_mode") === "close") {
                 $this->redirectToRoute("admin.module");
             }

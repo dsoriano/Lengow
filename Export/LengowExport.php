@@ -593,5 +593,4 @@ class LengowExport extends ExportHandler
             // Then the attributes
         ];
     }
-
 }

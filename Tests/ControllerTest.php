@@ -11,6 +11,7 @@
 /*************************************************************************************/
 
 namespace Lengow\Tests;
+
 use Lengow\Controller\ExportController;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Thelia\Tests\Controller\ControllerTestBase;
