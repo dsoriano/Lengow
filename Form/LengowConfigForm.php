@@ -11,6 +11,7 @@
 /*************************************************************************************/
 
 namespace Lengow\Form;
+
 use Lengow\Lengow;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Symfony\Component\Validator\Constraints\Callback;
@@ -55,6 +56,7 @@ class LengowConfigForm extends BaseForm
     {
         $translator = Translator::getInstance();
 
+        // Be careful to cast numerical data into numbers. It might raise an exception otherwise.
         $this->formBuilder
             ->add("min-stock", "number", array(
                 "label" => $translator->trans("Minimum available product sale element", [], Lengow::MESSAGE_DOMAIN),
@@ -63,7 +65,7 @@ class LengowConfigForm extends BaseForm
                 "constraints" => array(
                     new GreaterThanOrEqual(["value" => 0]),
                 ),
-                "data" => ConfigQuery::read("lengow_min_quantity_export", 0),
+                "data" => intval(ConfigQuery::read("lengow_min_quantity_export", 0)),
             ))
             ->add("delivery-price", "number", array(
                 "label" => $translator->trans("Delivery price", [], Lengow::MESSAGE_DOMAIN),
@@ -72,7 +74,7 @@ class LengowConfigForm extends BaseForm
                 "constraints" => array(
                     new GreaterThanOrEqual(["value" => 0]),
                 ),
-                "data" => ConfigQuery::read("lengow_delivery_price", 0),
+                "data" => floatval(ConfigQuery::read("lengow_delivery_price", 0)),
             ))
             ->add("free-shipping-amount", "number", array(
                 "label" => $translator->trans("Product's price for free shipping", [], Lengow::MESSAGE_DOMAIN),
@@ -81,7 +83,7 @@ class LengowConfigForm extends BaseForm
                 "constraints" => array(
                     new GreaterThanOrEqual(["value" => 0]),
                 ),
-                "data" => ConfigQuery::read("lengow_free_delivery_price", 0),
+                "data" => floatval(ConfigQuery::read("lengow_free_delivery_price", 0)),
             ))
             ->add("front-cache-time", "integer", array(
                 "label" => $translator->trans("Cache time for front controller (in seconds)", [], Lengow::MESSAGE_DOMAIN),
@@ -90,7 +92,7 @@ class LengowConfigForm extends BaseForm
                 "constraints" => array(
                     new GreaterThanOrEqual(["value" => 0]),
                 ),
-                "data" => ConfigQuery::read("lengow_cache_time", 3600),
+                "data" => intval(ConfigQuery::read("lengow_cache_time", 3600)),
             ))
             ->add("allowed-attributes-ids", "text", array(
                 "label" => $translator->trans("Allowed attributes ids (separated by comas)", [], Lengow::MESSAGE_DOMAIN),
