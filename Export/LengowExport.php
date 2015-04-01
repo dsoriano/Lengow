@@ -12,12 +12,12 @@
 
 namespace Lengow\Export;
 
-use Lengow\Model\LengowExcludeBrand;
 use Lengow\Model\LengowExcludeBrandQuery;
-use Lengow\Model\LengowExcludeCategory;
 use Lengow\Model\LengowExcludeCategoryQuery;
-use Lengow\Model\LengowExcludeProduct;
 use Lengow\Model\LengowExcludeProductQuery;
+use Lengow\Model\Map\LengowExcludeBrandTableMap;
+use Lengow\Model\Map\LengowExcludeCategoryTableMap;
+use Lengow\Model\Map\LengowExcludeProductTableMap;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Runtime\Collection\ArrayCollection;
@@ -124,28 +124,16 @@ class LengowExport extends ExportHandler
         $freeDeliveryAmount = ConfigQuery::read("lengow_free_delivery_price", 60);
 
         // Exclude categories
-        $excludeCategories = [-1];
-
-        /** @var LengowExcludeCategory $category */
-        foreach (LengowExcludeCategoryQuery::create()->find() as $category) {
-            $excludeCategories[] = $category->getCategoryId();
-        }
+        $excludeCategories = LengowExcludeCategoryQuery::create()->select([LengowExcludeCategoryTableMap::CATEGORY_ID])->find()->toArray();
+        $excludeCategories[] = -1;
 
         // Exclude brands
-        $excludeBrands = [-1];
-
-        /** @var LengowExcludeBrand $brand */
-        foreach (LengowExcludeBrandQuery::create()->find() as $brand) {
-            $excludeBrands[] = $brand->getBrandId();
-        }
+        $excludeBrands = LengowExcludeBrandQuery::create()->select([LengowExcludeBrandTableMap::BRAND_ID])->find()->toArray();
+        $excludeBrands[] = -1;
 
         // Exclude some products
-        $excludeProducts = [-1];
-
-        /** @var LengowExcludeProduct $product */
-        foreach (LengowExcludeProductQuery::create()->find() as $product) {
-            $excludeProducts[] = $product->getProductId();
-        }
+        $excludeProducts = LengowExcludeProductQuery::create()->select([LengowExcludeProductTableMap::PRODUCT_ID])->find()->toArray();
+        $excludeProducts[] = -1;
 
         /**
          * Build categories tree ( id => top level name )

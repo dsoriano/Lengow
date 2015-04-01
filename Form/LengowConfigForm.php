@@ -21,6 +21,8 @@ use Lengow\Model\LengowExcludeProduct;
 use Lengow\Model\LengowExcludeProductQuery;
 use Lengow\Model\LengowIncludeAttribute;
 use Lengow\Model\LengowIncludeAttributeQuery;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Constraints\Callback;
 use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
 use Symfony\Component\Validator\ExecutionContextInterface;
@@ -46,6 +48,26 @@ use Thelia\Model\ProductQuery;
  */
 class LengowConfigForm extends BaseForm
 {
+    protected $translator;
+
+    /**
+     * @param Request $request
+     * @param string $type
+     * @param array $data
+     * @param array $options
+     * @param ContainerInterface $container
+     */
+    public function __construct(
+        Request $request,
+        $type = "form",
+        $data = array(),
+        $options = array(),
+        ContainerInterface $container = null
+    ) {
+        parent::__construct($request, $type, $data, $options, $container);
+        $this->translator = Translator::getInstance();
+    }
+
     /**
      *
      * in this function you add all the fields you need for your Form.
@@ -69,7 +91,7 @@ class LengowConfigForm extends BaseForm
     protected function buildForm()
     {
         // Retrieving choice options
-        $locale = Translator::getInstance()->getLocale();
+        $locale = $this->request->getSession()->getAdminEditionLang()->getLocale();
 
         // Attributes
         $attributesOpts = array();
@@ -212,7 +234,7 @@ class LengowConfigForm extends BaseForm
                 'data' => $lengowAttributes,
             ))
             ->add('exclude-categories-ids', 'choice', array(
-                'expanded' => true,
+                'expanded' => false,
                 'multiple' => true,
                 'label' => $this->trans('Categories to exclude from the export'),
                 'label_attr' => [
@@ -363,7 +385,6 @@ class LengowConfigForm extends BaseForm
      */
     protected function trans($id, array $parameters = array(), $domain = Lengow::MESSAGE_DOMAIN)
     {
-        $translator = Translator::getInstance();
-        return $translator->trans($id, $parameters, $domain);
+        return $this->translator->trans($id, $parameters, $domain);
     }
 }
