@@ -11,6 +11,7 @@
 /*************************************************************************************/
 
 namespace Lengow\Export;
+
 use Thelia\Core\FileFormat\Formatting\Formatter\CSVFormatter;
 
 /**

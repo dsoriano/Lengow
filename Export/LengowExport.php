@@ -12,6 +12,12 @@
 
 namespace Lengow\Export;
 
+use Lengow\Model\LengowExcludeBrand;
+use Lengow\Model\LengowExcludeBrandQuery;
+use Lengow\Model\LengowExcludeCategory;
+use Lengow\Model\LengowExcludeCategoryQuery;
+use Lengow\Model\LengowExcludeProduct;
+use Lengow\Model\LengowExcludeProductQuery;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Runtime\Collection\ArrayCollection;
@@ -117,11 +123,28 @@ class LengowExport extends ExportHandler
         $deliveryPrice = ConfigQuery::read("lengow_delivery_price", "5.90");
         $freeDeliveryAmount = ConfigQuery::read("lengow_free_delivery_price", 60);
 
-        // 35,41,40,39,15,18,25,26,24,27,29,47,64,63,66,67,68,51)
-        $excludeCategories = explode(",", ConfigQuery::read("lengow_category_exclude", ""));
+        // Exclude categories
+        $excludeCategories = [-1];
 
-        if (empty($excludeCategories)) {
-            $excludeCategories = "-1";
+        /** @var LengowExcludeCategory $category */
+        foreach (LengowExcludeCategoryQuery::create()->find() as $category) {
+            $excludeCategories[] = $category->getCategoryId();
+        }
+
+        // Exclude brands
+        $excludeBrands = [-1];
+
+        /** @var LengowExcludeBrand $brand */
+        foreach (LengowExcludeBrandQuery::create()->find() as $brand) {
+            $excludeBrands[] = $brand->getBrandId();
+        }
+
+        // Exclude some products
+        $excludeProducts = [-1];
+
+        /** @var LengowExcludeProduct $product */
+        foreach (LengowExcludeProductQuery::create()->find() as $product) {
+            $excludeProducts[] = $product->getProductId();
         }
 
         /**
@@ -159,6 +182,16 @@ class LengowExport extends ExportHandler
                     ->filterByVisible(1)
                 ->endUse()
             ->endUse()
+            ->useProductCategoryQuery()
+                ->useCategoryQuery()
+                    ->filterById($excludeCategories, Criteria::NOT_IN)
+                    ->filterByVisible(1)
+                ->endUse()
+            ->endUse()
+            ->useBrandQuery()
+                ->filterById($excludeBrands, Criteria::NOT_IN)
+            ->endUse()
+            ->filterById($excludeProducts, Criteria::NOT_IN)
             ->filterByVisible(1)
             ->groupById()
             ->select(ProductTableMap::getFieldNames())

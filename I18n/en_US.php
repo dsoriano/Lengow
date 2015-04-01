@@ -8,7 +8,10 @@ return array(
     'Delivery price' => 'Delivery price',
     'Minimum available product sale element' => 'Minimum available product sale element',
     'Product\'s price for free shipping' => 'Product\'s price for free shipping',
-    'This attribute ids %ids doesn\'t exist' => 'This attribute ids %ids doesn\'t exist',
-    'This category ids %ids doesn\'t exist' => 'This category ids %ids doesn\'t exist',
-    'This field is not valid, it must be like \'1,2,3\'' => 'This field is not valid, it must be like \'1,2,3\'',
+    'Attributes to include in the export' => 'Attributes to include in the export',
+    'Categories to exclude from the export' => 'Categories to exclude from the export',
+    'Brands to exclude from the export' => 'Brands to exclude from the export',
+    'Specific products to exclude from the export' => 'Specific products to exclude from the export',
+    'The following %entity_type IDs does not exist: %ids.' => 'The following %entity_type IDs does not exist: %ids.',
+    'Manual export' => 'Manual export',
 );

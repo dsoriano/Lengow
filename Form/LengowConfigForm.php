@@ -13,17 +13,31 @@
 namespace Lengow\Form;
 
 use Lengow\Lengow;
-use Propel\Runtime\ActiveQuery\Criteria;
+use Lengow\Model\Base\LengowExcludeCategoryQuery;
+use Lengow\Model\LengowExcludeBrand;
+use Lengow\Model\LengowExcludeBrandQuery;
+use Lengow\Model\LengowExcludeCategory;
+use Lengow\Model\LengowExcludeProduct;
+use Lengow\Model\LengowExcludeProductQuery;
+use Lengow\Model\LengowIncludeAttribute;
+use Lengow\Model\LengowIncludeAttributeQuery;
 use Symfony\Component\Validator\Constraints\Callback;
 use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
 use Symfony\Component\Validator\ExecutionContextInterface;
 use Thelia\Core\Translation\Translator;
 use Thelia\Form\BaseForm;
+use Thelia\Model\Attribute;
+use Thelia\Model\AttributeI18nQuery;
 use Thelia\Model\AttributeQuery;
+use Thelia\Model\Brand;
+use Thelia\Model\BrandI18nQuery;
+use Thelia\Model\BrandQuery;
+use Thelia\Model\Category;
+use Thelia\Model\CategoryI18nQuery;
 use Thelia\Model\CategoryQuery;
 use Thelia\Model\ConfigQuery;
-use Thelia\Model\Map\AttributeTableMap;
-use Thelia\Model\Map\CategoryTableMap;
+use Thelia\Model\Product;
+use Thelia\Model\ProductQuery;
 
 /**
  * Class LengowConfigForm
@@ -54,12 +68,97 @@ class LengowConfigForm extends BaseForm
      */
     protected function buildForm()
     {
-        $translator = Translator::getInstance();
+        // Retrieving choice options
+        $locale = Translator::getInstance()->getLocale();
 
+        // Attributes
+        $attributesOpts = array();
+
+        /** @var Attribute $attribute */
+        foreach (AttributeQuery::create()->find() as $attribute) {
+            $attributesOpts[$attribute->getId()] = AttributeI18nQuery::create()
+                ->filterByLocale($locale)
+                ->filterByAttribute($attribute)
+                ->findOne()
+                ->getTitle()
+            ;
+        }
+
+        // Brands
+        $brandsOpts = array();
+
+        /** @var Brand $brand */
+        foreach (BrandQuery::create()->find() as $brand) {
+            $brandsOpts[$brand->getId()] = BrandI18nQuery::create()
+                ->filterByLocale($locale)
+                ->filterByBrand($brand)
+                ->findOne()
+                ->getTitle()
+            ;
+        }
+
+        // Categories
+        $categoriesOpts = array();
+
+        /** @var Category $category */
+        foreach (CategoryQuery::create()->find() as $category) {
+            $categoriesOpts[$category->getId()] = CategoryI18nQuery::create()
+                ->filterByLocale($locale)
+                ->filterByCategory($category)
+                ->findOne()
+                ->getTitle()
+            ;
+        }
+
+        // Products
+        $productsOpts = array();
+
+        /** @var Product $product */
+        foreach (ProductQuery::create()->find() as $product) {
+            $productsOpts[$product->getId()] = $product->getRef();
+        }
+
+
+        // Retrieving values for Lengow
+
+        // Attributes
+        $lengowAttributes = [];
+
+        /** @var LengowIncludeAttribute $attribute */
+        foreach (LengowIncludeAttributeQuery::create()->find() as $attribute) {
+            $lengowAttributes[] = $attribute->getAttributeId();
+        }
+
+        // Brands
+        $lengowBrands = [];
+
+        /** @var LengowExcludeBrand $brand */
+        foreach (LengowExcludeBrandQuery::create()->find() as $brand) {
+            $lengowBrands[] = $brand->getBrandId();
+        }
+
+        // Categories
+        $lengowCategories = [];
+
+        /** @var LengowExcludeCategory $category */
+        foreach (LengowExcludeCategoryQuery::create()->find() as $category) {
+            $lengowCategories[] = $category->getCategoryId();
+        }
+
+        // Attributes
+        $lengowProducts = [];
+
+        /** @var LengowExcludeProduct $product */
+        foreach (LengowExcludeProductQuery::create()->find() as $product) {
+            $lengowProducts[] = $product->getProductId();
+        }
+
+
+        // Building form
         // Be careful to cast numerical data into numbers. It might raise an exception otherwise.
         $this->formBuilder
             ->add("min-stock", "number", array(
-                "label" => $translator->trans("Minimum available product sale element", [], Lengow::MESSAGE_DOMAIN),
+                "label" => $this->trans('Minimum available product sale element'),
                 "label_attr" =>  ["for" => "min-stock"],
                 "required" => true,
                 "constraints" => array(
@@ -68,7 +167,7 @@ class LengowConfigForm extends BaseForm
                 "data" => intval(ConfigQuery::read("lengow_min_quantity_export", 0)),
             ))
             ->add("delivery-price", "number", array(
-                "label" => $translator->trans("Delivery price", [], Lengow::MESSAGE_DOMAIN),
+                "label" => $this->trans('Delivery price'),
                 "label_attr" =>  ["for" => "delivery-price"],
                 "required" => true,
                 "constraints" => array(
@@ -77,7 +176,7 @@ class LengowConfigForm extends BaseForm
                 "data" => floatval(ConfigQuery::read("lengow_delivery_price", 0)),
             ))
             ->add("free-shipping-amount", "number", array(
-                "label" => $translator->trans("Product's price for free shipping", [], Lengow::MESSAGE_DOMAIN),
+                "label" => $this->trans("Product's price for free shipping"),
                 "label_attr" =>  ["for" => "free-shipping-amount"],
                 "required" => false,
                 "constraints" => array(
@@ -86,7 +185,7 @@ class LengowConfigForm extends BaseForm
                 "data" => floatval(ConfigQuery::read("lengow_free_delivery_price", 0)),
             ))
             ->add("front-cache-time", "integer", array(
-                "label" => $translator->trans("Cache time for front controller (in seconds)", [], Lengow::MESSAGE_DOMAIN),
+                "label" => $this->trans("Cache time for front controller (in seconds)"),
                 "label_attr" =>  ["for" => "front-cache-time"],
                 "required" => false,
                 "constraints" => array(
@@ -94,110 +193,156 @@ class LengowConfigForm extends BaseForm
                 ),
                 "data" => intval(ConfigQuery::read("lengow_cache_time", 3600)),
             ))
-            ->add("allowed-attributes-ids", "text", array(
-                "label" => $translator->trans("Allowed attributes ids (separated by comas)", [], Lengow::MESSAGE_DOMAIN),
-                "label_attr" =>  ["for" => "allowed-attributes-ids"],
-                "required" => false,
-                "constraints" => [
-                    new Callback(
-                        [
-                            "methods" => [
-                                [$this, "checkAttributes"]
-                            ]
-                        ]
-                    )
+            ->add('allowed-attributes-ids', 'choice', array(
+                'expanded' => false,
+                'multiple' => true,
+                'label' => $this->trans('Attributes to include in the export'),
+                'label_attr' => [
+                    'for' => 'allowed-attributes-ids',
                 ],
-                "data" => ConfigQuery::read("lengow_allowed_attributes_id"),
+                'required' => false,
+                'constraints' => [
+                    new Callback([
+                        'methods' => [
+                            [$this, 'checkAttributes']
+                        ]
+                    ])
+                ],
+                'choices' => $attributesOpts,
+                'data' => $lengowAttributes,
             ))
-            ->add("exclude-categories-ids", "text", array(
-                "label" => $translator->trans("Categories ids to exclude from the export (separated by comas)", [], Lengow::MESSAGE_DOMAIN),
-                "label_attr" =>  ["for" => "exclude-categories-ids"],
-                "required" => false,
-                "constraints" => [
-                    new Callback(
-                        [
-                            "methods" => [
-                                [$this, "checkCategories"]
-                            ]
-                        ]
-                    )
+            ->add('exclude-categories-ids', 'choice', array(
+                'expanded' => true,
+                'multiple' => true,
+                'label' => $this->trans('Categories to exclude from the export'),
+                'label_attr' => [
+                    'for' => 'exclude-categories-ids',
                 ],
-                "data" => ConfigQuery::read("lengow_category_exclude"),
+                'required' => false,
+                'constraints' => [
+                    new Callback([
+                        'methods' => [
+                            [$this, 'checkCategories']
+                        ]
+                    ])
+                ],
+                'choices' => $categoriesOpts,
+                'data' => $lengowCategories,
+            ))
+            ->add('exclude-brands-ids', 'choice', array(
+                'expanded' => false,
+                'multiple' => true,
+                'label' => $this->trans('Brands to exclude from the export'),
+                'label_attr' => [
+                    'for' => 'exclude-brands-ids',
+                ],
+                'required' => false,
+                'constraints' => [
+                    new Callback([
+                        'methods' => [
+                            [$this, 'checkBrands']
+                        ]
+                    ])
+                ],
+                'choices' => $brandsOpts,
+                'data' => $lengowBrands,
+            ))
+            ->add('exclude-products-ids', 'choice', array(
+                'expanded' => false,
+                'multiple' => true,
+                'label' => $this->trans('Specific products to exclude from the export'),
+                'label_attr' => [
+                    'for' => 'exclude-brands-ids',
+                ],
+                'required' => false,
+                'constraints' => [
+                    new Callback([
+                        'methods' => [
+                            [$this, 'checkProducts']
+                        ]
+                    ])
+                ],
+                'choices' => $productsOpts,
+                'data' => $lengowProducts,
             ))
         ;
     }
 
-    public function checkCategories($value, ExecutionContextInterface $context)
-    {
-        $value = str_replace("#\s#", "", $value);
-
-        if (!empty($value)) {
-            if (!preg_match("#^(\d+,)*\d+$#", $value)) {
-                $context->addViolation(
-                    Translator::getInstance()->trans(
-                        "This field is not valid, it must be like '1,2,3'"
-                    )
-                );
-            } else {
-                $ids = explode(",", $value);
-
-                $existingIds = CategoryQuery::create()
-                    ->filterById($ids, Criteria::IN)
-                    ->select(CategoryTableMap::ID)
-                    ->find()
-                    ->toArray()
-                ;
-
-                $notExistingIds = array_diff($ids, $existingIds);
-
-                if (!empty($notExistingIds)) {
-                    $context->addViolation(
-                        Translator::getInstance()->trans(
-                            "This category ids %ids doesn't exist",
-                            [
-                                "%ids" => implode(", ", $notExistingIds)
-                            ]
-                        )
-                    );
-                }
-            }
-        }
-    }
-
+    /**
+     * Checking if submitted attribute IDs are real attribute IDs.
+     * @param $value
+     * @param ExecutionContextInterface $context
+     */
     public function checkAttributes($value, ExecutionContextInterface $context)
     {
-        $value = str_replace("#\s#", "", $value);
+        $this->doCheck('Attribute', $value, $context);
+    }
 
-        if (!empty($value)) {
-            if (!preg_match("#^(\d+,)*\d+$#", $value)) {
-                $context->addViolation(
-                    Translator::getInstance()->trans(
-                        "This field is not valid, it must be like '1,2,3'"
-                    )
-                );
-            } else {
-                $ids = explode(",", $value);
+    /**
+     * Checking if submitted category IDs are real category IDs.
+     * @param $value
+     * @param ExecutionContextInterface $context
+     */
+    public function checkCategories($value, ExecutionContextInterface $context)
+    {
+        $this->doCheck('Category', $value, $context);
+    }
 
-                $existingIds = AttributeQuery::create()
-                    ->filterById($ids, Criteria::IN)
-                    ->select(AttributeTableMap::ID)
-                    ->find()
-                    ->toArray()
-                ;
+    /**
+     * Checking if submitted brand IDs are real brand IDs.
+     * @param $value
+     * @param ExecutionContextInterface $context
+     */
+    public function checkBrands($value, ExecutionContextInterface $context)
+    {
+        $this->doCheck('Brand', $value, $context);
+    }
 
-                $notExistingIds = array_diff($ids, $existingIds);
 
-                if (!empty($notExistingIds)) {
-                    $context->addViolation(
-                        Translator::getInstance()->trans(
-                            "This attribute ids %ids doesn't exist",
-                            [
-                                "%ids" => implode(", ", $notExistingIds)
-                            ]
-                        )
-                    );
-                }
+
+    /**
+     * Checking if submitted brand IDs are real brand IDs.
+     * @param $value
+     * @param ExecutionContextInterface $context
+     */
+    public function checkProducts($value, ExecutionContextInterface $context)
+    {
+        $this->doCheck('Product', $value, $context);
+    }
+
+
+    /**
+     * Checking if submitted entity IDs are real entity IDs. It is the core method for this.
+     * @param string $entityType Entity type ('Attribute', 'Category', 'Brand' or 'Product').
+     * @param $value
+     * @param ExecutionContextInterface $context
+     */
+    protected function doCheck($entityType, $value, ExecutionContextInterface &$context)
+    {
+        $entityIds = array();
+        $queryclass = '\\Thelia\\Model\\'.$entityType.'Query';
+
+        /** @var Brand $entity */
+        foreach ($queryclass::create()->find() as $entity) {
+            $entityIds[] = $entity->getId();
+        }
+
+        $notExistingIds = array();
+
+        foreach ($value as $entityId) {
+            if (!in_array($entityId, $entityIds)) {
+                $notExistingIds[] = $entityId;
             }
+        }
+
+        if (!empty($notExistingIds)) {
+            $context->addViolation($this->trans(
+                'The following %entity_type IDs does not exist: %ids.',
+                [
+                    '%entity_type' => strtolower($entityType),
+                    '%ids' => implode(', ', $notExistingIds)
+                ]
+            ));
         }
     }
 
@@ -207,5 +352,18 @@ class LengowConfigForm extends BaseForm
     public function getName()
     {
         return "lengow-configuration-form";
+    }
+
+    /**
+     * Shortcut for translation
+     * @param $id
+     * @param array $parameters
+     * @param string $domain
+     * @return string
+     */
+    protected function trans($id, array $parameters = array(), $domain = Lengow::MESSAGE_DOMAIN)
+    {
+        $translator = Translator::getInstance();
+        return $translator->trans($id, $parameters, $domain);
     }
 }

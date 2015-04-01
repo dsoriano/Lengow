@@ -8,7 +8,7 @@
         <default key="_controller">Lengow\Controller\ExportController::lengowExport</default>
     </route>
 
-    <route id="lengow.configure" path="/admin/module/lengow/configuration" methods="post">
+    <route id="lengow.configure" path="/admin/module/Lengow/configuration" methods="post">
         <default key="_controller">Lengow\Controller\LengowConfigurationController::configure</default>
     </route>
 </routes>

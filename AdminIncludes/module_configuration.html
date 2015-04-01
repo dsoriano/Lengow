@@ -8,7 +8,7 @@
             <div class="col-md-12">
             {form name="lengow-configuration"}
                 {if $form_error}<div class="alert alert-danger">{$form_error_message}</div>{/if}
-                <form class="clearfix" action="{url path='/admin/module/lengow/configuration'}" method="POST" {form_enctype form=$form}>
+                <form class="clearfix" action="{url path='/admin/module/Lengow/configuration'}" method="POST" {form_enctype form=$form}>
                     {include
                         file="includes/inner-form-toolbar.html"
                         hide_flags=true
@@ -77,8 +77,17 @@
                             {render_form_field form=$form field="exclude-categories-ids"}
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            {render_form_field form=$form field="exclude-brands-ids"}
+                        </div>
+                        <div class="col-md-6">
+                            {render_form_field form=$form field="exclude-products-ids"}
+                        </div>
+                    </div>
+                    <a href="{url path='lengow/export'}" class="btn btn-default btn-info">{intl l='Manual export' d='lengow'}</a>
                 </form>
-                {/form}
+            {/form}
             </div>
         </div>
     </div>
