@@ -48,26 +48,6 @@ use Thelia\Model\ProductQuery;
  */
 class LengowConfigForm extends BaseForm
 {
-    protected $translator;
-
-    /**
-     * @param Request $request
-     * @param string $type
-     * @param array $data
-     * @param array $options
-     * @param ContainerInterface $container
-     */
-    public function __construct(
-        Request $request,
-        $type = "form",
-        $data = array(),
-        $options = array(),
-        ContainerInterface $container = null
-    ) {
-        parent::__construct($request, $type, $data, $options, $container);
-        $this->translator = Translator::getInstance();
-    }
-
     /**
      *
      * in this function you add all the fields you need for your Form.
@@ -385,6 +365,7 @@ class LengowConfigForm extends BaseForm
      */
     protected function trans($id, array $parameters = array(), $domain = Lengow::MESSAGE_DOMAIN)
     {
+        is_null($this->translator) and $this->translator = Translator::getInstance();
         return $this->translator->trans($id, $parameters, $domain);
     }
 }
