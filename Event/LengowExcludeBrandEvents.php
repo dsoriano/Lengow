@@ -20,4 +20,5 @@ use Lengow\Event\Base\LengowExcludeBrandEvents as BaseLengowExcludeBrandEvents;
  */
 class LengowExcludeBrandEvents extends BaseLengowExcludeBrandEvents
 {
+    const DELETE_ALL = LengowEvents::LENGOW_EXCLUDE_BRAND_DELETE_ALL;
 }

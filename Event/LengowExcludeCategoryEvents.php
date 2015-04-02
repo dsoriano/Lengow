@@ -20,4 +20,5 @@ use Lengow\Event\Base\LengowExcludeCategoryEvents as BaseLengowExcludeCategoryEv
  */
 class LengowExcludeCategoryEvents extends BaseLengowExcludeCategoryEvents
 {
+    const DELETE_ALL = LengowEvents::LENGOW_EXCLUDE_CATEGORY_DELETE_ALL;
 }

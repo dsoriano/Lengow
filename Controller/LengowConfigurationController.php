@@ -12,6 +12,14 @@
 
 namespace Lengow\Controller;
 
+use Lengow\Event\LengowExcludeBrandEvent;
+use Lengow\Event\LengowExcludeBrandEvents;
+use Lengow\Event\LengowExcludeCategoryEvent;
+use Lengow\Event\LengowExcludeCategoryEvents;
+use Lengow\Event\LengowExcludeProductEvent;
+use Lengow\Event\LengowExcludeProductEvents;
+use Lengow\Event\LengowIncludeAttributeEvent;
+use Lengow\Event\LengowIncludeAttributeEvents;
 use Lengow\Form\LengowConfigForm;
 use Lengow\Lengow;
 use Lengow\Model\LengowExcludeBrand;
@@ -99,39 +107,39 @@ class LengowConfigurationController extends BaseAdminController
     protected function updateIdsForLengow(Form $boundForm)
     {
         // Attributes
-        LengowIncludeAttributeQuery::create()->deleteAll();
+        $this->dispatch(LengowIncludeAttributeEvents::DELETE_ALL, new LengowIncludeAttributeEvent());
 
         foreach ($boundForm->get('allowed-attributes-ids')->getData() as $id) {
-            $lengowAttribute = new LengowIncludeAttribute();
-            $lengowAttribute->setAttributeId($id);
-            $lengowAttribute->save();
+            $event = new LengowIncludeAttributeEvent();
+            $event->setAttributeId($id);
+            $this->dispatch(LengowIncludeAttributeEvents::CREATE, $event);
         }
 
         // Brands
-        LengowExcludeBrandQuery::create()->deleteAll();
+        $this->dispatch(LengowExcludeBrandEvents::DELETE_ALL, new LengowExcludeBrandEvent());
 
         foreach ($boundForm->get('exclude-brands-ids')->getData() as $id) {
-            $lengowBrand = new LengowExcludeBrand();
-            $lengowBrand->setBrandId($id);
-            $lengowBrand->save();
+            $event = new LengowExcludeBrandEvent();
+            $event->setBrandId($id);
+            $this->dispatch(LengowExcludeBrandEvents::CREATE, $event);
         }
 
         // Categories
-        LengowExcludeCategoryQuery::create()->deleteAll();
+        $this->dispatch(LengowExcludeCategoryEvents::DELETE_ALL, new LengowExcludeCategoryEvent());
 
         foreach ($boundForm->get('exclude-categories-ids')->getData() as $id) {
-            $lengowCategory = new LengowExcludeCategory();
-            $lengowCategory->setCategoryId($id);
-            $lengowCategory->save();
+            $event = new LengowExcludeCategoryEvent();
+            $event->setCategoryId($id);
+            $this->dispatch(LengowExcludeCategoryEvents::CREATE, $event);
         }
 
         // Products
-        LengowExcludeProductQuery::create()->deleteAll();
+        $this->dispatch(LengowExcludeProductEvents::DELETE_ALL, new LengowExcludeProductEvent());
 
         foreach ($boundForm->get('exclude-products-ids')->getData() as $id) {
-            $lengowProduct = new LengowExcludeProduct();
-            $lengowProduct->setProductId($id);
-            $lengowProduct->save();
+            $event = new LengowExcludeProductEvent();
+            $event->setProductId($id);
+            $this->dispatch(LengowExcludeProductEvents::CREATE, $event);
         }
     }
 }

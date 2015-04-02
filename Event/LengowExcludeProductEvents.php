@@ -20,4 +20,5 @@ use Lengow\Event\Base\LengowExcludeProductEvents as BaseLengowExcludeProductEven
  */
 class LengowExcludeProductEvents extends BaseLengowExcludeProductEvents
 {
+    const DELETE_ALL = LengowEvents::LENGOW_EXCLUDE_PRODUCT_DELETE_ALL;
 }

@@ -21,4 +21,8 @@ use Lengow\Event\Base\LengowEvents as BaseLengowEvents;
  */
 class LengowEvents extends BaseLengowEvents
 {
+    const LENGOW_EXCLUDE_CATEGORY_DELETE_ALL = 'action.lengow_exclude_category.delete_all';
+    const LENGOW_EXCLUDE_BRAND_DELETE_ALL = 'action.lengow_exclude_brand.delete_all';
+    const LENGOW_EXCLUDE_PRODUCT_DELETE_ALL = 'action.lengow_exclude_product.delete_all';
+    const LENGOW_INCLUDE_ATTRIBUTE_DELETE_ALL = 'action.lengow_include_attribute.delete_all';
 }

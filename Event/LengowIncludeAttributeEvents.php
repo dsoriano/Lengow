@@ -20,4 +20,5 @@ use Lengow\Event\Base\LengowIncludeAttributeEvents as BaseLengowIncludeAttribute
  */
 class LengowIncludeAttributeEvents extends BaseLengowIncludeAttributeEvents
 {
+    const DELETE_ALL = LengowEvents::LENGOW_INCLUDE_ATTRIBUTE_DELETE_ALL;
 }
