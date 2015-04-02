@@ -10,14 +10,18 @@
 /*      file that was distributed with this source code.                             */
 /*************************************************************************************/
 
-namespace Lengow\Model;
+namespace Lengow\Event\Base;
 
-use Lengow\Model\Base\LengowExcludeBrand as BaseLengowExcludeBrand;
+use Lengow\Event\LengowEvents as ChildLengowEvents;
 
-/**
- * Class LengowExcludeBrand
- * @package Lengow\Model
+/*
+ * Class LengowIncludeAttributeEvents
+ * @package Lengow\Event\Base
+ * @author TheliaStudio
  */
-class LengowExcludeBrand extends BaseLengowExcludeBrand
+class LengowIncludeAttributeEvents
 {
+    const CREATE = ChildLengowEvents::LENGOW_INCLUDE_ATTRIBUTE_CREATE;
+    const UPDATE = ChildLengowEvents::LENGOW_INCLUDE_ATTRIBUTE_UPDATE;
+    const DELETE = ChildLengowEvents::LENGOW_INCLUDE_ATTRIBUTE_DELETE;
 }

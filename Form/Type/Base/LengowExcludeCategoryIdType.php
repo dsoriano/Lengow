@@ -10,14 +10,27 @@
 /*      file that was distributed with this source code.                             */
 /*************************************************************************************/
 
-namespace Lengow\Model;
+namespace Lengow\Form\Type\Base;
 
-use Lengow\Model\Base\LengowExcludeBrand as BaseLengowExcludeBrand;
+use Thelia\Core\Form\Type\Field\AbstractIdType;
+use Lengow\Model\LengowExcludeCategoryQuery;
 
 /**
- * Class LengowExcludeBrand
- * @package Lengow\Model
+ * Class LengowExcludeCategory
+ * @package Lengow\Form\Base
+ * @author TheliaStudio
  */
-class LengowExcludeBrand extends BaseLengowExcludeBrand
+class LengowExcludeCategoryIdType extends AbstractIdType
 {
+    const TYPE_NAME = "lengow_exclude_category_id";
+
+    protected function getQuery()
+    {
+        return new LengowExcludeCategoryQuery();
+    }
+
+    public function getName()
+    {
+        return static::TYPE_NAME;
+    }
 }

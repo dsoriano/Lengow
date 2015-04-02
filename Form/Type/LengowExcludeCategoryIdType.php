@@ -10,14 +10,14 @@
 /*      file that was distributed with this source code.                             */
 /*************************************************************************************/
 
-namespace Lengow\Model;
+namespace Lengow\Form\Type;
 
-use Lengow\Model\Base\LengowExcludeBrand as BaseLengowExcludeBrand;
+use Lengow\Form\Type\Base\LengowExcludeCategoryIdType as BaseLengowExcludeCategoryIdType;
 
 /**
- * Class LengowExcludeBrand
- * @package Lengow\Model
+ * Class LengowExcludeCategory
+ * @package Lengow\Form
  */
-class LengowExcludeBrand extends BaseLengowExcludeBrand
+class LengowExcludeCategoryIdType extends BaseLengowExcludeCategoryIdType
 {
 }

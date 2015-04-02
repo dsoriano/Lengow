@@ -1,0 +1,77 @@
+{extends file="admin-layout.tpl"}
+{default_translation_domain domain='lengow.bo.default'}
+
+{block name="no-return-functions"}
+    {$admin_current_location = 'tools'}
+{/block}
+
+{block name="page-title"}{intl l='LengowExcludeCategory'}{/block}
+
+{block name="check-resource"}admin.module{/block}
+{block name="check-access"}update{/block}
+{block name="check-module"}Lengow{/block}
+
+{block name="main-content"}
+
+    {form name="lengow_exclude_category.update"}
+        <div id="wrapper" class="container">
+
+            {if $form_error}
+                <div class="alert alert-danger">{$form_error_message}</div>
+            {/if}
+
+            <div class="general-block-decorator">
+                <div class="title title-without-tabs">
+                    {intl l="LengowExcludeCategory edit" d="lengow.bo.default"}
+                </div>
+
+                <div class="form-container">
+                    <form method="POST" action="{$current_url}" {form_enctype form=$form} class="clearfix" >
+
+                        {include "includes/inner-form-toolbar.html"
+                        close_url = {url path="/admin/module/Lengow/lengow_exclude_category"}
+                        }
+
+                        {form_field form=$form field="id"}
+                        {assign "lengow_exclude_category_id" $value}
+                            <input type="hidden" name="{$name}" value="{$value}"/>
+                        {/form_field}
+                        {form_field form=$form field="success_url"}
+                            <input type="hidden" name="{$name}" value="{url path='/admin/module/Lengow'}/lengow_exclude_category"/>
+                        {/form_field}
+                        {form_hidden_fields form=$form}
+
+                        {loop name="lengow_exclude_category_update" type="lengow-exclude-category" backend_context="yes" id=$lengow_exclude_category_id lang=$edit_language_id}
+                            <div class="row">
+                                <div class="col-md-12">
+                                    {form_field form=$form field="category_id"}
+                                        <div class="form-group">
+                                            <label class="control-label" for="{$label_attr.for}">
+                                                {$label}
+                                                {if $required}<span class="required">*</span>{/if}
+                                            </label>
+
+                                            {form_error form=$form field="category_id"}{$message}{/form_error}
+
+                                                <input type="number" class="form-control" name="{$name}" id="{$label_attr.for}" value="{$CATEGORY_ID}" placeholder="{intl l='The LengowExcludeCategory category_id'}" />
+                                        </div>
+                                    {/form_field}
+
+                                    {include "includes/inner-form-toolbar.html"
+                                        hide_flags = true
+                                        close_url = {url path="/admin/module/Lengow/lengow_exclude_category"}
+                                    }
+
+                                </div>
+                            </div>
+                        {/loop}
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    {/form}
+{/block}
+
+{block name="javascript-initialization"}
+{/block}

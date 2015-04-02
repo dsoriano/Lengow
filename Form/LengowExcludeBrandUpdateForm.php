@@ -10,14 +10,21 @@
 /*      file that was distributed with this source code.                             */
 /*************************************************************************************/
 
-namespace Lengow\Model;
+namespace Lengow\Form;
 
-use Lengow\Model\Base\LengowExcludeBrand as BaseLengowExcludeBrand;
+use Lengow\Form\Base\LengowExcludeBrandUpdateForm as BaseLengowExcludeBrandUpdateForm;
 
 /**
- * Class LengowExcludeBrand
- * @package Lengow\Model
+ * Class LengowExcludeBrandUpdateForm
+ * @package Lengow\Form
  */
-class LengowExcludeBrand extends BaseLengowExcludeBrand
+class LengowExcludeBrandUpdateForm extends BaseLengowExcludeBrandUpdateForm
 {
+    public function getTranslationKeys()
+    {
+        return array(
+            "id" => "id",
+            "brand_id" => "brand_id",
+        );
+    }
 }

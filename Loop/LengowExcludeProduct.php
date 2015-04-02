@@ -10,14 +10,17 @@
 /*      file that was distributed with this source code.                             */
 /*************************************************************************************/
 
-namespace Lengow\Model;
+namespace Lengow\Loop;
 
-use Lengow\Model\Base\LengowExcludeBrand as BaseLengowExcludeBrand;
+use Lengow\Loop\Base\LengowExcludeProduct as BaseLengowExcludeProductLoop;
 
 /**
- * Class LengowExcludeBrand
- * @package Lengow\Model
+ * Class LengowExcludeProduct
+ * @package Lengow\Loop
  */
-class LengowExcludeBrand extends BaseLengowExcludeBrand
+class LengowExcludeProduct extends BaseLengowExcludeProductLoop
 {
+    /**
+     * You may now add your own logic
+     */
 }

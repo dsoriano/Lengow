@@ -10,14 +10,14 @@
 /*      file that was distributed with this source code.                             */
 /*************************************************************************************/
 
-namespace Lengow\Model;
+namespace Lengow\Action;
 
-use Lengow\Model\Base\LengowExcludeBrand as BaseLengowExcludeBrand;
+use Lengow\Action\Base\LengowExcludeProductAction as  BaseLengowExcludeProductAction;
 
 /**
- * Class LengowExcludeBrand
- * @package Lengow\Model
+ * Class LengowExcludeProductAction
+ * @package Lengow\Action
  */
-class LengowExcludeBrand extends BaseLengowExcludeBrand
+class LengowExcludeProductAction extends BaseLengowExcludeProductAction
 {
 }

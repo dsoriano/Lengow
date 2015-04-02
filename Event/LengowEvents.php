@@ -10,14 +10,15 @@
 /*      file that was distributed with this source code.                             */
 /*************************************************************************************/
 
-namespace Lengow\Model;
+namespace Lengow\Event;
 
-use Lengow\Model\Base\LengowExcludeBrand as BaseLengowExcludeBrand;
+use Lengow\Event\Base\LengowEvents as BaseLengowEvents;
 
 /**
- * Class LengowExcludeBrand
- * @package Lengow\Model
+ * Class LengowEvents
+ * @package Lengow\Event
+ * @author TheliaStudio
  */
-class LengowExcludeBrand extends BaseLengowExcludeBrand
+class LengowEvents extends BaseLengowEvents
 {
 }

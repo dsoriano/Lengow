@@ -10,14 +10,14 @@
 /*      file that was distributed with this source code.                             */
 /*************************************************************************************/
 
-namespace Lengow\Model;
+namespace Lengow\Controller;
 
-use Lengow\Model\Base\LengowExcludeBrand as BaseLengowExcludeBrand;
+use Lengow\Controller\Base\LengowExcludeBrandController as BaseLengowExcludeBrandController;
 
 /**
- * Class LengowExcludeBrand
- * @package Lengow\Model
+ * Class LengowExcludeBrandController
+ * @package Lengow\Controller
  */
-class LengowExcludeBrand extends BaseLengowExcludeBrand
+class LengowExcludeBrandController extends BaseLengowExcludeBrandController
 {
 }

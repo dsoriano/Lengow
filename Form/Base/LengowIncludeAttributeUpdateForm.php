@@ -10,14 +10,26 @@
 /*      file that was distributed with this source code.                             */
 /*************************************************************************************/
 
-namespace Lengow\Model;
+namespace Lengow\Form\Base;
 
-use Lengow\Model\Base\LengowExcludeBrand as BaseLengowExcludeBrand;
+use Lengow\Form\LengowIncludeAttributeCreateForm as ChildLengowIncludeAttributeCreateForm;
+use Lengow\Form\Type\LengowIncludeAttributeIdType;
 
 /**
- * Class LengowExcludeBrand
- * @package Lengow\Model
+ * Class LengowIncludeAttributeForm
+ * @package Lengow\Form
+ * @author TheliaStudio
  */
-class LengowExcludeBrand extends BaseLengowExcludeBrand
+class LengowIncludeAttributeUpdateForm extends ChildLengowIncludeAttributeCreateForm
 {
+    const FORM_NAME = "lengow_include_attribute_update";
+
+    public function buildForm()
+    {
+        parent::buildForm();
+
+        $this->formBuilder
+            ->add("id", LengowIncludeAttributeIdType::TYPE_NAME)
+        ;
+    }
 }

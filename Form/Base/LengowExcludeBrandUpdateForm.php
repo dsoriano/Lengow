@@ -10,14 +10,26 @@
 /*      file that was distributed with this source code.                             */
 /*************************************************************************************/
 
-namespace Lengow\Model;
+namespace Lengow\Form\Base;
 
-use Lengow\Model\Base\LengowExcludeBrand as BaseLengowExcludeBrand;
+use Lengow\Form\LengowExcludeBrandCreateForm as ChildLengowExcludeBrandCreateForm;
+use Lengow\Form\Type\LengowExcludeBrandIdType;
 
 /**
- * Class LengowExcludeBrand
- * @package Lengow\Model
+ * Class LengowExcludeBrandForm
+ * @package Lengow\Form
+ * @author TheliaStudio
  */
-class LengowExcludeBrand extends BaseLengowExcludeBrand
+class LengowExcludeBrandUpdateForm extends ChildLengowExcludeBrandCreateForm
 {
+    const FORM_NAME = "lengow_exclude_brand_update";
+
+    public function buildForm()
+    {
+        parent::buildForm();
+
+        $this->formBuilder
+            ->add("id", LengowExcludeBrandIdType::TYPE_NAME)
+        ;
+    }
 }

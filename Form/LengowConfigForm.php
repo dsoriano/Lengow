@@ -21,8 +21,6 @@ use Lengow\Model\LengowExcludeProduct;
 use Lengow\Model\LengowExcludeProductQuery;
 use Lengow\Model\LengowIncludeAttribute;
 use Lengow\Model\LengowIncludeAttributeQuery;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Constraints\Callback;
 use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
 use Symfony\Component\Validator\ExecutionContextInterface;
