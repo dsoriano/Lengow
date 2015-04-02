@@ -38,6 +38,27 @@ class ExportController extends BaseExportController
 
     public function lengowExport()
     {
+        return Response::create($this->buildExportDatas());
+    }
+
+    public function lengowManualExport()
+    {
+        $data = $this->buildExportDatas();
+        $response = new Response();
+        $response->headers->set('Content-Description', 'File Transfer');
+        $response->headers->set('Content-Type', 'text/csv');
+        $response->headers->set('Content-Disposition', 'attachment; filename=lengow.csv');
+        $response->headers->set('Cache-Control', 'must-revalidate');
+        $response->headers->set('Pragma', 'public');
+        $response->headers->set('Expires', '0');
+        $response->headers->set('Content-Length', strlen($data));
+        $response->setStatusCode(200);
+        $response->setContent($data);
+        return $response;
+    }
+
+    protected function buildExportDatas()
+    {
         $envCacheDir = THELIA_CACHE_DIR . $this->container->getParameter("kernel.environment");
 
         $cachePath = $this->buildPath($envCacheDir . DS . "lengow" . DS . "export.cache", 'file', true, true);
@@ -65,7 +86,7 @@ class ExportController extends BaseExportController
             $data = file_get_contents($cachePath);
         }
 
-        return Response::create($data);
+        return $data;
     }
 
     public function buildPath($path, $checkRead = false, $checkWrite = false, $create = 'none')

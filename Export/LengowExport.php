@@ -15,9 +15,11 @@ namespace Lengow\Export;
 use Lengow\Model\LengowExcludeBrandQuery;
 use Lengow\Model\LengowExcludeCategoryQuery;
 use Lengow\Model\LengowExcludeProductQuery;
+use Lengow\Model\LengowIncludeAttributeQuery;
 use Lengow\Model\Map\LengowExcludeBrandTableMap;
 use Lengow\Model\Map\LengowExcludeCategoryTableMap;
 use Lengow\Model\Map\LengowExcludeProductTableMap;
+use Lengow\Model\Map\LengowIncludeAttributeTableMap;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Runtime\Collection\ArrayCollection;
@@ -494,7 +496,8 @@ class LengowExport extends ExportHandler
 
     protected function getAttributesTable(ObjectCollection $productSaleElements, $locale)
     {
-        $allowedAttributes = ConfigQuery::read("lengow_allowed_attributes_id");
+        // Include allowed attributes
+        $allowedAttributes = LengowIncludeAttributeQuery::create()->select([LengowIncludeAttributeTableMap::ATTRIBUTE_ID])->find()->toArray();
 
         $attributesQuery = AttributeCombinationQuery::create()
             ->filterByProductSaleElements($productSaleElements)
@@ -505,7 +508,7 @@ class LengowExport extends ExportHandler
             ->endUse()
             ->useAttributeQuery(null, Criteria::LEFT_JOIN)
                 ->_if(!empty($allowedAttributes))
-                    ->filterById(explode(",", $allowedAttributes), Criteria::IN)
+                    ->filterById($allowedAttributes, Criteria::IN)
                 ->_endif()
                 ->orderByPosition()
                 ->useAttributeI18nQuery()
