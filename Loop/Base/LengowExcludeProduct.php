@@ -44,6 +44,7 @@ class LengowExcludeProduct extends BaseLoop implements PropelSearchLoopInterface
             $row
                 ->set("ID", $entry->getId())
                 ->set("PRODUCT_ID", $entry->getProductId())
+                ->set("PRODUCT_REF", $entry->getProduct()->getRef())
             ;
 
             $this->addMoreResults($row, $entry);

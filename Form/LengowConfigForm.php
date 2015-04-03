@@ -69,7 +69,7 @@ class LengowConfigForm extends BaseForm
     protected function buildForm()
     {
         // Retrieving choice options
-        $locale = $this->request->getSession()->getAdminEditionLang()->getLocale();
+        $locale = $this->request->getSession()->getLang()->getLocale();
 
         // Attributes
         $attributesOpts = array();

@@ -14,4 +14,12 @@ return array(
     'Specific products to exclude from the export' => 'Specific products to exclude from the export',
     'The following %entity_type IDs does not exist: %ids.' => 'The following %entity_type IDs does not exist: %ids.',
     'Manual export' => 'Manual export',
+    'Write the product reference here' => 'Write the product reference here',
+    'Products to exclude:' => 'Products to exclude:',
+    'ID' => 'ID',
+    'Reference' => 'Reference',
+    'Do not exclude this product' => 'Do not exclude this product',
+    'Brands' => 'Brands',
+    'Categories' => 'Categories',
+    'Are you sure that you want to remove this product from the list of products to exclude?' => 'Are you sure that you want to remove this product from the list of products to exclude?',
 );

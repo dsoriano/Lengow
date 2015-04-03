@@ -1,73 +1,85 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <routes xmlns="http://symfony.com/schema/routing" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
-  <route id="lengow.export" path="/lengow/export" methods="get">
-    <default key="_controller">Lengow\Controller\ExportController::lengowExport</default>
-  </route>
-  <!-- Manual export -->
-  <route id="lengow.manexport" path="/lengow/manexport" methods="get">
-    <default key="_controller">Lengow\Controller\ExportController::lengowManualExport</default>
-  </route>
-  <route id="lengow.configure" path="/admin/module/Lengow/configuration" methods="post">
-    <default key="_controller">Lengow\Controller\LengowConfigurationController::configure</default>
-  </route>
-  <route id="lengow.lengow_exclude_category.list" path="/admin/module/Lengow/lengow_exclude_category" methods="get">
-    <default key="_controller">Lengow:LengowExcludeCategory:default</default>
-  </route>
-  <route id="lengow.lengow_exclude_category.create" path="/admin/module/Lengow/lengow_exclude_category" methods="post">
-    <default key="_controller">Lengow:LengowExcludeCategory:create</default>
-  </route>
-  <route id="lengow.lengow_exclude_category.view" path="/admin/module/Lengow/lengow_exclude_category/edit" methods="get">
-    <default key="_controller">Lengow:LengowExcludeCategory:update</default>
-  </route>
-  <route id="lengow.lengow_exclude_category.edit" path="/admin/module/Lengow/lengow_exclude_category/edit" methods="post">
-    <default key="_controller">Lengow:LengowExcludeCategory:processUpdate</default>
-  </route>
-  <route id="lengow.lengow_exclude_category.delete" path="/admin/module/Lengow/lengow_exclude_category/delete" methods="post">
-    <default key="_controller">Lengow:LengowExcludeCategory:delete</default>
-  </route>
-  <route id="lengow.lengow_exclude_brand.list" path="/admin/module/Lengow/lengow_exclude_brand" methods="get">
-    <default key="_controller">Lengow:LengowExcludeBrand:default</default>
-  </route>
-  <route id="lengow.lengow_exclude_brand.create" path="/admin/module/Lengow/lengow_exclude_brand" methods="post">
-    <default key="_controller">Lengow:LengowExcludeBrand:create</default>
-  </route>
-  <route id="lengow.lengow_exclude_brand.view" path="/admin/module/Lengow/lengow_exclude_brand/edit" methods="get">
-    <default key="_controller">Lengow:LengowExcludeBrand:update</default>
-  </route>
-  <route id="lengow.lengow_exclude_brand.edit" path="/admin/module/Lengow/lengow_exclude_brand/edit" methods="post">
-    <default key="_controller">Lengow:LengowExcludeBrand:processUpdate</default>
-  </route>
-  <route id="lengow.lengow_exclude_brand.delete" path="/admin/module/Lengow/lengow_exclude_brand/delete" methods="post">
-    <default key="_controller">Lengow:LengowExcludeBrand:delete</default>
-  </route>
-  <route id="lengow.lengow_exclude_product.list" path="/admin/module/Lengow/lengow_exclude_product" methods="get">
-    <default key="_controller">Lengow:LengowExcludeProduct:default</default>
-  </route>
-  <route id="lengow.lengow_exclude_product.create" path="/admin/module/Lengow/lengow_exclude_product" methods="post">
-    <default key="_controller">Lengow:LengowExcludeProduct:create</default>
-  </route>
-  <route id="lengow.lengow_exclude_product.view" path="/admin/module/Lengow/lengow_exclude_product/edit" methods="get">
-    <default key="_controller">Lengow:LengowExcludeProduct:update</default>
-  </route>
-  <route id="lengow.lengow_exclude_product.edit" path="/admin/module/Lengow/lengow_exclude_product/edit" methods="post">
-    <default key="_controller">Lengow:LengowExcludeProduct:processUpdate</default>
-  </route>
-  <route id="lengow.lengow_exclude_product.delete" path="/admin/module/Lengow/lengow_exclude_product/delete" methods="post">
-    <default key="_controller">Lengow:LengowExcludeProduct:delete</default>
-  </route>
-  <route id="lengow.lengow_include_attribute.list" path="/admin/module/Lengow/lengow_include_attribute" methods="get">
-    <default key="_controller">Lengow:LengowIncludeAttribute:default</default>
-  </route>
-  <route id="lengow.lengow_include_attribute.create" path="/admin/module/Lengow/lengow_include_attribute" methods="post">
-    <default key="_controller">Lengow:LengowIncludeAttribute:create</default>
-  </route>
-  <route id="lengow.lengow_include_attribute.view" path="/admin/module/Lengow/lengow_include_attribute/edit" methods="get">
-    <default key="_controller">Lengow:LengowIncludeAttribute:update</default>
-  </route>
-  <route id="lengow.lengow_include_attribute.edit" path="/admin/module/Lengow/lengow_include_attribute/edit" methods="post">
-    <default key="_controller">Lengow:LengowIncludeAttribute:processUpdate</default>
-  </route>
-  <route id="lengow.lengow_include_attribute.delete" path="/admin/module/Lengow/lengow_include_attribute/delete" methods="post">
-    <default key="_controller">Lengow:LengowIncludeAttribute:delete</default>
-  </route>
+    <route id="lengow.export" path="/lengow/export" methods="get">
+        <default key="_controller">Lengow\Controller\ExportController::lengowExport</default>
+    </route>
+
+    <!-- Manual export -->
+    <route id="lengow.manexport" path="/lengow/manexport" methods="get">
+        <default key="_controller">Lengow\Controller\ExportController::lengowManualExport</default>
+    </route>
+
+    <route id="lengow.configure" path="/admin/module/Lengow/configuration" methods="post">
+        <default key="_controller">Lengow\Controller\LengowConfigurationController::configure</default>
+    </route>
+
+    <route id="lengow.exclude_products.search" path="/admin/module/Lengow/excludeproductsearch" methods="get">
+        <default key="_controller">Lengow\Controller\LengowConfigurationController::searchProducts</default>
+    </route>
+
+    <route id="lengow.exclude_products.get" path="/admin/module/Lengow/excludeproduct" methods="get">
+        <default key="_controller">Lengow\Controller\LengowConfigurationController::searchProduct</default>
+    </route>
+
+    <!-- Routes generated by TheliaStudio -->
+    <route id="lengow.lengow_exclude_category.list" path="/admin/module/Lengow/lengow_exclude_category" methods="get">
+        <default key="_controller">Lengow:LengowExcludeCategory:default</default>
+    </route>
+    <route id="lengow.lengow_exclude_category.create" path="/admin/module/Lengow/lengow_exclude_category" methods="post">
+        <default key="_controller">Lengow:LengowExcludeCategory:create</default>
+    </route>
+    <route id="lengow.lengow_exclude_category.view" path="/admin/module/Lengow/lengow_exclude_category/edit" methods="get">
+        <default key="_controller">Lengow:LengowExcludeCategory:update</default>
+    </route>
+    <route id="lengow.lengow_exclude_category.edit" path="/admin/module/Lengow/lengow_exclude_category/edit" methods="post">
+        <default key="_controller">Lengow:LengowExcludeCategory:processUpdate</default>
+    </route>
+    <route id="lengow.lengow_exclude_category.delete" path="/admin/module/Lengow/lengow_exclude_category/delete" methods="post">
+        <default key="_controller">Lengow:LengowExcludeCategory:delete</default>
+    </route>
+    <route id="lengow.lengow_exclude_brand.list" path="/admin/module/Lengow/lengow_exclude_brand" methods="get">
+        <default key="_controller">Lengow:LengowExcludeBrand:default</default>
+    </route>
+    <route id="lengow.lengow_exclude_brand.create" path="/admin/module/Lengow/lengow_exclude_brand" methods="post">
+        <default key="_controller">Lengow:LengowExcludeBrand:create</default>
+    </route>
+    <route id="lengow.lengow_exclude_brand.view" path="/admin/module/Lengow/lengow_exclude_brand/edit" methods="get">
+        <default key="_controller">Lengow:LengowExcludeBrand:update</default>
+    </route>
+    <route id="lengow.lengow_exclude_brand.edit" path="/admin/module/Lengow/lengow_exclude_brand/edit" methods="post">
+        <default key="_controller">Lengow:LengowExcludeBrand:processUpdate</default>
+    </route>
+    <route id="lengow.lengow_exclude_brand.delete" path="/admin/module/Lengow/lengow_exclude_brand/delete" methods="post">
+        <default key="_controller">Lengow:LengowExcludeBrand:delete</default>
+    </route>
+    <route id="lengow.lengow_exclude_product.list" path="/admin/module/Lengow/lengow_exclude_product" methods="get">
+        <default key="_controller">Lengow:LengowExcludeProduct:default</default>
+    </route>
+    <route id="lengow.lengow_exclude_product.create" path="/admin/module/Lengow/lengow_exclude_product" methods="post">
+        <default key="_controller">Lengow:LengowExcludeProduct:create</default>
+    </route>
+    <route id="lengow.lengow_exclude_product.view" path="/admin/module/Lengow/lengow_exclude_product/edit" methods="get">
+        <default key="_controller">Lengow:LengowExcludeProduct:update</default>
+    </route>
+    <route id="lengow.lengow_exclude_product.edit" path="/admin/module/Lengow/lengow_exclude_product/edit" methods="post">
+        <default key="_controller">Lengow:LengowExcludeProduct:processUpdate</default>
+    </route>
+    <route id="lengow.lengow_exclude_product.delete" path="/admin/module/Lengow/lengow_exclude_product/delete" methods="post">
+        <default key="_controller">Lengow:LengowExcludeProduct:delete</default>
+    </route>
+    <route id="lengow.lengow_include_attribute.list" path="/admin/module/Lengow/lengow_include_attribute" methods="get">
+        <default key="_controller">Lengow:LengowIncludeAttribute:default</default>
+    </route>
+    <route id="lengow.lengow_include_attribute.create" path="/admin/module/Lengow/lengow_include_attribute" methods="post">
+        <default key="_controller">Lengow:LengowIncludeAttribute:create</default>
+    </route>
+    <route id="lengow.lengow_include_attribute.view" path="/admin/module/Lengow/lengow_include_attribute/edit" methods="get">
+        <default key="_controller">Lengow:LengowIncludeAttribute:update</default>
+    </route>
+    <route id="lengow.lengow_include_attribute.edit" path="/admin/module/Lengow/lengow_include_attribute/edit" methods="post">
+        <default key="_controller">Lengow:LengowIncludeAttribute:processUpdate</default>
+    </route>
+    <route id="lengow.lengow_include_attribute.delete" path="/admin/module/Lengow/lengow_include_attribute/delete" methods="post">
+        <default key="_controller">Lengow:LengowIncludeAttribute:delete</default>
+    </route>
 </routes>

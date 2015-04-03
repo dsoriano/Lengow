@@ -1,3 +1,4 @@
+{default_translation_domain domain='lengow'}
 <div class="general-block-decorator">
     <div class="title title-without-tabs">
         {intl l="Configure Lengow" d="lengow"}
@@ -82,10 +83,64 @@
                             {render_form_field form=$form field="exclude-brands-ids"}
                         </div>
                         <div class="col-md-6">
-                            {render_form_field form=$form field="exclude-products-ids"}
+                            {*render_form_field form=$form field="exclude-products-ids"*}
+                            {form_field form=$form field='exclude-products-ids'}
+                            <div class="form-group {if $error}has-error{/if}">
+                                <label class="control-label" for="{$label_attr.for}">
+                                    {$label}
+                                    {form_error form=$form field='exclude-products-ids'}
+                                    <br />
+                                    <span class="error">{$message}</span>
+                                    {/form_error}
+                                </label>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">{intl l='Write the product reference here'}</div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <input type="text" name="search" id="input-exclude-product" class="input-large" />
+                                        <a id="exclude-product" class="btn btn-primary">
+                                            <i class="glyphicon glyphicon-plus-sign"></i>
+                                        </a>
+                                    </div>
+                                    <select class="form-control" id="select-exclude-product" name="{$name}">
+                                    </select>
+                                </div>
+                            </div>
+
+                            <span id="exclude-products-ids_field-name" data-code="{$name}"></span>
+
+                            {* Excluded products *}
+                            <p><b>{intl l='Products to exclude:'}</b></p>
+                            <table class="table table-striped table-condensed">
+                                <thead>
+                                    <tr>
+                                        <th>{intl l='ID'}</th>
+                                        <th>{intl l='Reference'}</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lengow-excluded-products">
+                                    {loop type='lengow-exclude-product' name='lengow-exclude-product'}
+                                    <tr id="lengow-exclude-product-{$PRODUCT_ID}" class="lengow-exclude-product-row">
+                                        <td class="product-id-col">
+                                            <input type="checkbox" name="{$name}" value="{$PRODUCT_ID}" checked="checked" style="display: none"/>
+                                            {$PRODUCT_ID}
+                                        </td>
+                                        <td>{$PRODUCT_REF}</td>
+                                        <td>
+                                            <a class="btn btn-default btn-xs lengow-exclude-product-delete" title="{intl l='Do not exclude this product' }" data-toggle="modal">
+                                                <i class="glyphicon glyphicon-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {/loop}
+                                </tbody>
+                            </table>
+                            {/form_field}
                         </div>
                     </div>
-                    <a href="{url path='lengow/manexport'}" class="btn btn-default btn-info">{intl l='Manual export' d='lengow'}</a>
+                    <a href="{url path='lengow/manexport'}" class="btn btn-default btn-info">{intl l='Manual export'}</a>
                 </form>
             {/form}
             </div>

@@ -30,12 +30,23 @@ use Lengow\Model\LengowExcludeProduct;
 use Lengow\Model\LengowExcludeProductQuery;
 use Lengow\Model\LengowIncludeAttribute;
 use Lengow\Model\LengowIncludeAttributeQuery;
+use Propel\Runtime\ActiveQuery\Criteria;
 use Symfony\Component\Form\Form;
 use Thelia\Controller\Admin\BaseAdminController;
+use Thelia\Core\HttpFoundation\JsonResponse;
+use Thelia\Core\HttpFoundation\Response;
 use Thelia\Core\Security\AccessManager;
 use Thelia\Core\Security\Resource\AdminResources;
 use Thelia\Form\Exception\FormValidationException;
+use Thelia\Model\Base\BrandQuery;
 use Thelia\Model\ConfigQuery;
+use Thelia\Model\Map\BrandI18nTableMap;
+use Thelia\Model\Map\BrandTableMap;
+use Thelia\Model\Map\CategoryI18nTableMap;
+use Thelia\Model\Map\CategoryTableMap;
+use Thelia\Model\Map\ProductTableMap;
+use Thelia\Model\Product;
+use Thelia\Model\ProductQuery;
 
 /**
  * Class LengowConfigurationController
@@ -136,10 +147,96 @@ class LengowConfigurationController extends BaseAdminController
         // Products
         $this->dispatch(LengowExcludeProductEvents::DELETE_ALL, new LengowExcludeProductEvent());
 
-        foreach ($boundForm->get('exclude-products-ids')->getData() as $id) {
+        foreach (array_unique($boundForm->get('exclude-products-ids')->getData()) as $id) {
             $event = new LengowExcludeProductEvent();
             $event->setProductId($id);
             $this->dispatch(LengowExcludeProductEvents::CREATE, $event);
         }
+    }
+
+    public function searchProducts()
+    {
+        if (null !== $this->checkAuth([AdminResources::MODULE], ['Lengow'], AccessManager::VIEW)) {
+            return Response::create("false");
+        }
+
+        $locale = $this->getSession()->getAdminEditionLang()->getLocale();
+        $search = $this->getRequest()->query->get('q', '');
+        $productQuery = ProductQuery::create()
+            ->select([ProductTableMap::ID, ProductTableMap::REF, ProductTableMap::BRAND_ID])
+            ->useProductCategoryQuery(null, Criteria::LEFT_JOIN)
+                ->addAsColumn("category_ID", CategoryTableMap::ID)
+                ->filterByDefaultCategory(1)
+                ->useCategoryQuery(null, Criteria::LEFT_JOIN)
+                    ->useCategoryI18nQuery()
+                        ->filterByLocale($locale)
+                        ->addAsColumn("rubric_TITLE", CategoryI18nTableMap::TITLE)
+                    ->endUse()
+                ->endUse()
+            ->endUse()
+            ->useBrandQuery()
+                ->useBrandI18nQuery()
+                    ->addAsColumn('brand_NAME', BrandI18nTableMap::TITLE)
+                    ->filterByLocale($locale)
+                ->endUse()
+            ->endUse()
+            ->filterByRef("%$search%", Criteria::LIKE)
+            ->find()
+            ->toArray()
+        ;
+
+        $res = array(
+            'brands' => array(),
+            'categories' => array(),
+        );
+
+        foreach ($productQuery as $product) {
+            $resprod = array(
+                'id' => $product[ProductTableMap::ID],
+                'ref' => $product[ProductTableMap::REF],
+            );
+
+            // Brands filter
+            if ($product[ProductTableMap::BRAND_ID] == 0) {
+                $res['brands'][] = $resprod;
+            } else {
+                if (!array_key_exists($product['brand_NAME'], $res['brands'])) {
+                    $res['brands'][$product['brand_NAME']] = array();
+                }
+
+                $res['brands'][$product['brand_NAME']][] = $resprod;
+            }
+
+             // Categories filter
+            if ($product['category_ID'] == 0) {
+                $res['categories'][] = $resprod;
+            } else {
+                if (!array_key_exists($product['rubric_TITLE'], $res['categories'])) {
+                    $res['categories'][$product['rubric_TITLE']] = array();
+                }
+
+                $res['categories'][$product['rubric_TITLE']][] = $resprod;
+            }
+        }
+
+        return JsonResponse::create($res);
+    }
+
+    public function searchProduct()
+    {
+        if (null !== $this->checkAuth([AdminResources::MODULE], ['Lengow'], AccessManager::VIEW)) {
+            return Response::create("false");
+        }
+
+        $search = $this->getRequest()->query->get('q', '');
+
+        $product = ProductQuery::create()
+            ->select([ProductTableMap::ID, ProductTableMap::REF])
+            ->filterByRef($search)
+            ->find()
+            ->toArray()
+        ;
+
+        return (count($product) > 0) ?  JsonResponse::create(array_pop($product)) : Response::create("false");
     }
 }
