@@ -20,4 +20,6 @@ return array(
     'Brands' => 'Marques',
     'Categories' => 'Catégories',
     'Are you sure that you want to remove this product from the list of products to exclude?' => 'Êtes-vous certains de vouloir retire ce produit de la liste des produits à exclure ?',
+    'Maximal number of results to return while looking for products to exclude' => "Nombre maximal de produits à retourner lors d'une recherche de produits à exclure",
+    'Write 0 if you do not want a limit.' => 'Écrivez 0 si vous ne voulez pas de limites.',
 );

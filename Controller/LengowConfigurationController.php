@@ -73,6 +73,7 @@ class LengowConfigurationController extends BaseAdminController
             ConfigQuery::write("lengow_cache_time", $boundForm->get("front-cache-time")->getData());
             ConfigQuery::write("lengow_free_delivery_price", $boundForm->get("free-shipping-amount")->getData());
             ConfigQuery::write("lengow_delivery_price", $boundForm->get("delivery-price")->getData());
+            ConfigQuery::write('lengow_max_search_products_results', $boundForm->get('max-search-results-products')->getData());
 
             // Rewriting IDs for Lengow
             $this->updateIdsForLengow($boundForm);
@@ -181,9 +182,13 @@ class LengowConfigurationController extends BaseAdminController
                 ->endUse()
             ->endUse()
             ->filterByRef("%$search%", Criteria::LIKE)
-            ->find()
-            ->toArray()
         ;
+
+        // Limit the number of results
+        $maxres = intval(ConfigQuery::read('lengow_max_search_products_results', 0));
+        $maxres > 0 and $productQuery = $productQuery->limit($maxres);
+
+        $productQuery = $productQuery->find()->toArray();
 
         $res = array(
             'brands' => array(),

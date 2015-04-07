@@ -265,6 +265,15 @@ class LengowConfigForm extends BaseForm
                 'choices' => $productsOpts,
                 'data' => $lengowProducts,
             ))
+            ->add('max-search-results-products', 'number', array(
+                'label' => $this->trans('Maximal number of results to return while looking for products to exclude'),
+                'label_attr' =>  ['for' => 'max-search-results-products'],
+                'required' => true,
+                'constraints' => array(
+                    new GreaterThanOrEqual(['value' => 0]),
+                ),
+                'data' => intval(ConfigQuery::read('lengow_max_search_products_results', 0)),
+            ))
         ;
     }
 

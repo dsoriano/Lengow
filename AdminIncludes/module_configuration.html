@@ -83,7 +83,6 @@
                             {render_form_field form=$form field="exclude-brands-ids"}
                         </div>
                         <div class="col-md-6">
-                            {*render_form_field form=$form field="exclude-products-ids"*}
                             {form_field form=$form field='exclude-products-ids'}
                             <div class="form-group {if $error}has-error{/if}">
                                 <label class="control-label" for="{$label_attr.for}">
@@ -138,6 +137,14 @@
                                 </tbody>
                             </table>
                             {/form_field}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            {render_form_field form=$form field='max-search-results-products'}
+                            <p>{intl l='Write 0 if you do not want a limit.'}</p>
+                        </div>
+                        <div class="col-md-6">
                         </div>
                     </div>
                     <a href="{url path='lengow/manexport'}" class="btn btn-default btn-info">{intl l='Manual export'}</a>
