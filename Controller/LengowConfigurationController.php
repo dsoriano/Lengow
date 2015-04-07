@@ -186,9 +186,34 @@ class LengowConfigurationController extends BaseAdminController
 
         // Limit the number of results
         $maxres = intval(ConfigQuery::read('lengow_max_search_products_results', 0));
-        $maxres > 0 and $productQuery = $productQuery->limit($maxres);
+        $limited = ($maxres > 0);
+        $limited and $productQuery = $productQuery->limit($maxres);
 
         $productQuery = $productQuery->find()->toArray();
+
+        if (!$limited or ($limited and ($maxres > count($productQuery)))) {
+            // Add some unbranded products to the results
+            $unbrandedProductQuery = ProductQuery::create()
+                ->select([ProductTableMap::ID, ProductTableMap::REF, ProductTableMap::BRAND_ID])
+                ->useProductCategoryQuery(null, Criteria::LEFT_JOIN)
+                    ->addAsColumn("category_ID", CategoryTableMap::ID)
+                    ->filterByDefaultCategory(1)
+                    ->useCategoryQuery(null, Criteria::LEFT_JOIN)
+                        ->useCategoryI18nQuery()
+                            ->filterByLocale($locale)
+                            ->addAsColumn("rubric_TITLE", CategoryI18nTableMap::TITLE)
+                        ->endUse()
+                    ->endUse()
+                ->endUse()
+                ->filterByRef("%$search%", Criteria::LIKE)
+                ->filterByBrandId(null)
+            ;
+
+            $limited and $unbrandedProductQuery = $unbrandedProductQuery->limit($maxres - count($productQuery));
+
+            $unbrandedProductQuery = $unbrandedProductQuery->find()->toArray();
+            $productQuery = array_merge($productQuery, $unbrandedProductQuery);
+        }
 
         $res = array(
             'brands' => array(),

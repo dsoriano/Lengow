@@ -96,7 +96,7 @@
                 $.each(object, function (k,v) {
                     if (k === parseInt(k, 10)) {
                         {* Do not belong to anything, just add it as a product *}
-                        var prodOption = '<option value="' + v.ref + '">' + v.ref +'</option>';
+                        var prodOption = '<option value="' + v.ref + '">' + v.ref + " ({intl l='no brand'})" +'</option>';
                         optgroupHtml += prodOption;
                     }
                     else if (v.length > 0) {
