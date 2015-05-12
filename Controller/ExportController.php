@@ -15,6 +15,8 @@ namespace Lengow\Controller;
 use Lengow\Export\LengowExport;
 use Lengow\Export\LengowFormatter;
 use Lengow\Lengow;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Thelia\Controller\Admin\ExportController as BaseExportController;
 use Thelia\Core\HttpFoundation\Response;
 use Thelia\Exception\FileException;
@@ -43,29 +45,20 @@ class ExportController extends BaseExportController
 
     public function lengowManualExport()
     {
-        $data = $this->buildExportDatas();
-        $response = new Response();
-        $response->headers->set('Content-Description', 'File Transfer');
+        $this->buildExportDatas();
+        $response = new BinaryFileResponse($this->getLengowFileInfo());
         $response->headers->set('Content-Type', 'text/csv');
-        $response->headers->set('Content-Disposition', 'attachment; filename=lengow.csv');
-        $response->headers->set('Cache-Control', 'must-revalidate');
-        $response->headers->set('Pragma', 'public');
-        $response->headers->set('Expires', '0');
-        $response->headers->set('Content-Length', strlen($data));
-        $response->setContent($data);
+        $response->setContentDisposition(
+            ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+            'lengow.csv'
+        );
         return $response;
     }
 
     protected function buildExportDatas()
     {
-        $envCacheDir = THELIA_CACHE_DIR . $this->container->getParameter("kernel.environment");
-
-        $cachePath = $this->buildPath($envCacheDir . DS . "lengow" . DS . "export.cache", 'file', true, true);
-
-        $info = null;
-        if (file_exists($cachePath)) {
-            $info = new \SplFileInfo($cachePath);
-        }
+        $cachePath = $this->getLengowFileCachePath();
+        $info = $this->getLengowFileInfo();
 
         $handler = new LengowExport($this->container);
         $formatter = new LengowFormatter($this->container);
@@ -86,6 +79,18 @@ class ExportController extends BaseExportController
         }
 
         return $data;
+    }
+
+    protected function getLengowFileCachePath()
+    {
+        $envCacheDir = THELIA_CACHE_DIR . $this->container->getParameter('kernel.environment');
+        return $this->buildPath($envCacheDir . DS . 'lengow' . DS . 'export.cache', 'file', true, true);
+    }
+
+    protected function getLengowFileInfo()
+    {
+        $cachePath = $this->getLengowFileCachePath();
+        return file_exists($cachePath) ? new \SplFileInfo($cachePath) : null;
     }
 
     public function buildPath($path, $checkRead = false, $checkWrite = false, $create = 'none')
