@@ -161,59 +161,18 @@ class LengowConfigurationController extends BaseAdminController
             return Response::create("false");
         }
 
-        $locale = $this->getSession()->getAdminEditionLang()->getLocale();
         $search = $this->getRequest()->query->get('q', '');
-        $productQuery = ProductQuery::create()
-            ->select([ProductTableMap::ID, ProductTableMap::REF, ProductTableMap::BRAND_ID])
-            ->useProductCategoryQuery(null, Criteria::LEFT_JOIN)
-                ->addAsColumn("category_ID", CategoryTableMap::ID)
-                ->filterByDefaultCategory(1)
-                ->useCategoryQuery(null, Criteria::LEFT_JOIN)
-                    ->useCategoryI18nQuery()
-                        ->filterByLocale($locale)
-                        ->addAsColumn("rubric_TITLE", CategoryI18nTableMap::TITLE)
-                    ->endUse()
-                ->endUse()
-            ->endUse()
-            ->useBrandQuery()
-                ->useBrandI18nQuery()
-                    ->addAsColumn('brand_NAME', BrandI18nTableMap::TITLE)
-                    ->filterByLocale($locale)
-                ->endUse()
-            ->endUse()
-            ->filterByRef("%$search%", Criteria::LIKE)
-        ;
+        $res = $this->doSearchProducts($search);
 
-        // Limit the number of results
-        $maxres = intval(ConfigQuery::read('lengow_max_search_products_results', 0));
-        $limited = ($maxres > 0);
-        $limited and $productQuery = $productQuery->limit($maxres);
+        return JsonResponse::create($res);
+    }
 
-        $productQuery = $productQuery->find()->toArray();
-
-        if (!$limited or ($limited and ($maxres > count($productQuery)))) {
-            // Add some unbranded products to the results
-            $unbrandedProductQuery = ProductQuery::create()
-                ->select([ProductTableMap::ID, ProductTableMap::REF, ProductTableMap::BRAND_ID])
-                ->useProductCategoryQuery(null, Criteria::LEFT_JOIN)
-                    ->addAsColumn("category_ID", CategoryTableMap::ID)
-                    ->filterByDefaultCategory(1)
-                    ->useCategoryQuery(null, Criteria::LEFT_JOIN)
-                        ->useCategoryI18nQuery()
-                            ->filterByLocale($locale)
-                            ->addAsColumn("rubric_TITLE", CategoryI18nTableMap::TITLE)
-                        ->endUse()
-                    ->endUse()
-                ->endUse()
-                ->filterByRef("%$search%", Criteria::LIKE)
-                ->filterByBrandId(null)
-            ;
-
-            $limited and $unbrandedProductQuery = $unbrandedProductQuery->limit($maxres - count($productQuery));
-
-            $unbrandedProductQuery = $unbrandedProductQuery->find()->toArray();
-            $productQuery = array_merge($productQuery, $unbrandedProductQuery);
-        }
+    protected function doSearchProducts($search)
+    {
+        $productQuery = $this->doProductQuerySearch(
+            $search,
+            intval(ConfigQuery::read('lengow_max_search_products_results', 0))
+        );
 
         $res = array(
             'brands' => array(),
@@ -237,7 +196,7 @@ class LengowConfigurationController extends BaseAdminController
                 $res['brands'][$product['brand_NAME']][] = $resprod;
             }
 
-             // Categories filter
+            // Categories filter
             if ($product['category_ID'] == 0) {
                 $res['categories'][] = $resprod;
             } else {
@@ -249,7 +208,64 @@ class LengowConfigurationController extends BaseAdminController
             }
         }
 
-        return JsonResponse::create($res);
+        return $res;
+    }
+
+    protected function doProductQuerySearch($search, $maxres)
+    {
+        $locale = $this->getSession()->getAdminEditionLang()->getLocale();
+        $productQuery = ProductQuery::create()
+            ->select([ProductTableMap::ID, ProductTableMap::REF, ProductTableMap::BRAND_ID])
+            ->useProductCategoryQuery(null, Criteria::LEFT_JOIN)
+                ->addAsColumn("category_ID", CategoryTableMap::ID)
+                ->filterByDefaultCategory(1)
+                ->useCategoryQuery(null, Criteria::LEFT_JOIN)
+                    ->useCategoryI18nQuery()
+                        ->filterByLocale($locale)
+                        ->addAsColumn("rubric_TITLE", CategoryI18nTableMap::TITLE)
+                    ->endUse()
+                ->endUse()
+            ->endUse()
+            ->useBrandQuery()
+                ->useBrandI18nQuery()
+                    ->addAsColumn('brand_NAME', BrandI18nTableMap::TITLE)
+                    ->filterByLocale($locale)
+                ->endUse()
+            ->endUse()
+            ->filterByRef("%$search%", Criteria::LIKE)
+        ;
+
+        // Limit the number of results
+        $limited = ($maxres > 0);
+        $limited and $productQuery = $productQuery->limit($maxres);
+
+        $productQuery = $productQuery->find()->toArray();
+
+        // Add some unbranded products to the results
+        if (!$limited or ($limited and ($maxres > count($productQuery)))) {
+            $unbrandedProductQuery = ProductQuery::create()
+                ->select([ProductTableMap::ID, ProductTableMap::REF, ProductTableMap::BRAND_ID])
+                ->useProductCategoryQuery(null, Criteria::LEFT_JOIN)
+                    ->addAsColumn("category_ID", CategoryTableMap::ID)
+                    ->filterByDefaultCategory(1)
+                    ->useCategoryQuery(null, Criteria::LEFT_JOIN)
+                        ->useCategoryI18nQuery()
+                            ->filterByLocale($locale)
+                            ->addAsColumn("rubric_TITLE", CategoryI18nTableMap::TITLE)
+                        ->endUse()
+                    ->endUse()
+                ->endUse()
+                ->filterByRef("%$search%", Criteria::LIKE)
+                ->filterByBrandId(null)
+            ;
+
+            $limited and $unbrandedProductQuery = $unbrandedProductQuery->limit($maxres - count($productQuery));
+
+            $unbrandedProductQuery = $unbrandedProductQuery->find()->toArray();
+            $productQuery = array_merge($productQuery, $unbrandedProductQuery);
+        }
+
+        return $productQuery;
     }
 
     public function searchProduct()
