@@ -23,17 +23,34 @@
                     return;
                 }
 
-                var newRow = '<tr id="lengow-exclude-product-' + productId + '" class="lengow-exclude-product-row">';
-                newRow += '<td class="product-id-col">';
-                newRow += '<input type="checkbox" name="' + $('#exclude-products-ids_field-name').attr('data-code') + '" value="' + productId + '" checked="checked" style="display: none"/>' + productId;
-                newRow += '</td>';
-                newRow += '<td>' + productRef + '</td>';
-                newRow += '<td>';
-                newRow += '<a class="btn btn-default btn-xs lengow-exclude-product-delete" title="{intl l='Do not exclude this product' }" data-toggle="modal">';
-                newRow += '<i class="glyphicon glyphicon-trash"></i>';
-                newRow += '</a>';
-                newRow += '</td>';
-                newRow += '</tr>';
+                var newRow = $('<tr>');
+                newRow.attr('id', 'lengow-exclude-product-' + productId);
+                newRow.addClass('lengow-exclude-product-row');
+
+                var col1 = $('<td>');
+                col1.addClass('product-id-col');
+                var cb = $('<input>');
+                cb.attr('type', 'checkbox');
+                cb.attr('name', $('#exclude-products-ids_field-name').attr('data-code'));
+                cb.attr('value', productId);
+                cb.attr('checked', 'checked');
+                cb.css('display', 'none');
+                col1.append(cb).append(productId);
+
+                var col2 = $('<td>');
+                col2.html(productRef);
+
+                var col3 = $('<td>');
+                var linkDelete = $('<a>');
+                linkDelete.addClass('btn').addClass('btn-default').addClass('btn-xs').addClass('lengow-exclude-product-delete');
+                linkDelete.attr('title', "{intl l='Do not exclude this product'}");
+                linkDelete.attr('data-toggle', 'modal');
+                var glyphiconTrash = $('<i>');
+                glyphiconTrash.addClass('glyphicon').addClass('glyphicon-trash');
+                linkDelete.append(glyphiconTrash);
+                col3.append(linkDelete);
+
+                newRow.append(col1).append(col2).append(col3);
 
                 $('#lengow-excluded-products').append(newRow);
                 $('.lengow-exclude-product-delete').unbind().click(lengowExcludeProductDelete);
@@ -51,7 +68,7 @@
             $('#input-exclude-product').keyup(function (event) {
                 if ( $(this).val().length > 2 ) {
                     {* Starting smart search *}
-                    var selectHtml = "";
+                    var selectHtml = '';
 
                     if (timer !== null) {
                         clearTimeout(timer);
@@ -66,12 +83,12 @@
 
                             {* Brands *}
                             if (data.brands != undefined) {
-                                selectHtml += buildOptgroups("{intl l='Brands'}", data.brands);
+                                selectHtml += buildOptgroups("{intl l='Brands'}", data.brands).html();
                             }
 
                             {* Categories *}
                             if (data.categories != undefined) {
-                                selectHtml += buildOptgroups("{intl l='Categories'}", data.categories);
+                                selectHtml += buildOptgroups("{intl l='Categories'}", data.categories).html();
                             }
 
                             $('#select-exclude-product').html(selectHtml);
@@ -90,26 +107,30 @@
             var res = '';
 
             if (object != [] && object != undefined) {
-                var res = '<optgroup label="' + title + '">';
+                var res = $('<optgroup>');
+                res.attr('label', title);
 
-                var optgroupHtml = '';
                 $.each(object, function (k,v) {
                     if (k === parseInt(k, 10)) {
                         {* Do not belong to anything, just add it as a product *}
-                        var prodOption = '<option value="' + v.ref + '">' + v.ref + " ({intl l='no brand'})" +'</option>';
-                        optgroupHtml += prodOption;
+                        var prodOption = $('<option>');
+                        prodOption.attr('value', v.ref);
+                        prodOption.html(v.ref + " ({intl l='no brand'})");
+                        res.append(prodOption);
                     }
                     else if (v.length > 0) {
-                        var optgroup ='<optgroup label="' + k + '">' ;
+                        var optgroup = $('<optgroup>');
+                        optgroup.attr('label', k);
+
                         $.each(v, function (key, value) {
-                            var prodOption = '<option value="' + value.ref + '">' + value.ref +'</option>';
-                            optgroup += prodOption;
+                            var prodOption = $('<option>');
+                            prodOption.attr('value', value.ref);
+                            prodOption.html(value.ref);
+                            optgroup.append(prodOption);
                         });
-                        optgroup += '</optgroup>';
-                        optgroupHtml += optgroup;
+                        res.append(optgroup);
                     }
                 });
-                res += (optgroupHtml + '</optgroup>');
             }
 
             return res;
