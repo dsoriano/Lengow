@@ -64,7 +64,7 @@ class LengowConfigurationController extends BaseAdminController
         $errorMessage = null;
         $successMessage = null;
 
-        $form = new LengowConfigForm($this->getRequest());
+        $form = $this->createForm('lengow-configuration');
 
         try {
             $boundForm = $this->validateForm($form);
