@@ -21,7 +21,6 @@ return array(
     'Do not exclude this product' => 'Do not exclude this product',
     'Brands' => 'Brands',
     'Categories' => 'Categories',
-    'Are you sure that you want to remove this product from the list of products to exclude?' => 'Are you sure that you want to remove this product from the list of products to exclude?',
     'Maximal number of results to return while looking for products to exclude' => 'Maximal number of results to return while looking for products to exclude',
     'Write 0 if you do not want a limit.' => 'Write 0 if you do not want a limit.',
     'no brand' => 'no brand',
