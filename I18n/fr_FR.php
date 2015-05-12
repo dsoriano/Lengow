@@ -4,7 +4,7 @@ return array(
     'Cache time for front controller (in seconds)' => 'Temps de mise en cache de l\'export (en secondes)',
     'Configuration successfully saved' => 'La configuration à été enregistrée',
     'Delivery price' => 'Frais de port ',
-    'Minimum available product sale element' => 'Nombre de déclinaison minimal disponible',
+    'Minimum available product sale element' => 'Nombre de déclinaisons minimales disponibles',
     'Product\'s price for free shipping' => 'Prix minimal pour bénéficier des frais de ports offerts',
     'Attributes to include in the export' => 'Attributs à inclure dans l\'export',
     'Categories to exclude from the export' => 'Catégories à exclure de l\'export',
