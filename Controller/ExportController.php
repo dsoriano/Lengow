@@ -52,7 +52,6 @@ class ExportController extends BaseExportController
         $response->headers->set('Pragma', 'public');
         $response->headers->set('Expires', '0');
         $response->headers->set('Content-Length', strlen($data));
-        $response->setStatusCode(200);
         $response->setContent($data);
         return $response;
     }
