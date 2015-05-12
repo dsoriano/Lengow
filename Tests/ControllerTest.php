@@ -36,6 +36,7 @@ class ControllerTest extends ControllerTestBase
     {
 
     }
+    
     protected function getController()
     {
         return new ExportController();
