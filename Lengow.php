@@ -16,14 +16,22 @@ use Propel\Runtime\Connection\ConnectionInterface;
 use Thelia\Install\Database;
 use Thelia\Module\BaseModule;
 
+/**
+ * Class Lengow
+ * @package Lengow
+ */
 class Lengow extends BaseModule
 {
     const MESSAGE_DOMAIN = "lengow";
+    const ROUTER = "router.lengow";
 
     public function postActivation(ConnectionInterface $con = null)
     {
         $database = new Database($con);
 
-        $database->insertSql(null, [__DIR__ . "/Config/insert.sql"]);
+        $database->insertSql(null, [
+            __DIR__.'/Config/insert.sql',
+            __DIR__.'/Config/create.sql',
+        ]);
     }
 }

@@ -15,6 +15,8 @@ namespace Lengow\Controller;
 use Lengow\Export\LengowExport;
 use Lengow\Export\LengowFormatter;
 use Lengow\Lengow;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Thelia\Controller\Admin\ExportController as BaseExportController;
 use Thelia\Core\HttpFoundation\Response;
 use Thelia\Exception\FileException;
@@ -38,14 +40,25 @@ class ExportController extends BaseExportController
 
     public function lengowExport()
     {
-        $envCacheDir = THELIA_CACHE_DIR . $this->container->getParameter("kernel.environment");
+        return Response::create($this->buildExportDatas());
+    }
 
-        $cachePath = $this->buildPath($envCacheDir . DS . "lengow" . DS . "export.cache", 'file', true, true);
+    public function lengowManualExport()
+    {
+        $this->buildExportDatas();
+        $response = new BinaryFileResponse($this->getLengowFileInfo());
+        $response->headers->set('Content-Type', 'text/csv');
+        $response->setContentDisposition(
+            ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+            'lengow.csv'
+        );
+        return $response;
+    }
 
-        $info = null;
-        if (file_exists($cachePath)) {
-            $info = new \SplFileInfo($cachePath);
-        }
+    protected function buildExportDatas()
+    {
+        $cachePath = $this->getLengowFileCachePath();
+        $info = $this->getLengowFileInfo();
 
         $handler = new LengowExport($this->container);
         $formatter = new LengowFormatter($this->container);
@@ -65,7 +78,19 @@ class ExportController extends BaseExportController
             $data = file_get_contents($cachePath);
         }
 
-        return Response::create($data);
+        return $data;
+    }
+
+    protected function getLengowFileCachePath()
+    {
+        $envCacheDir = THELIA_CACHE_DIR . $this->container->getParameter('kernel.environment');
+        return $this->buildPath($envCacheDir . DS . 'lengow' . DS . 'export.cache', 'file', true, true);
+    }
+
+    protected function getLengowFileInfo()
+    {
+        $cachePath = $this->getLengowFileCachePath();
+        return file_exists($cachePath) ? new \SplFileInfo($cachePath) : null;
     }
 
     public function buildPath($path, $checkRead = false, $checkWrite = false, $create = 'none')
@@ -88,13 +113,15 @@ class ExportController extends BaseExportController
                 if ($create === 'file') {
                     if (!touch($path)) {
                         $this->throwFileException(
-                            "Unable to create the file %path",["%path"=>$path]
+                            "Unable to create the file %path",
+                            ["%path"=>$path]
                         );
                     }
                 } elseif ($create === 'dir') {
                     if (!mkdir($path)) {
                         $this->throwFileException(
-                            "Unable to create the directory %path",["%path"=>$path]
+                            "Unable to create the directory %path",
+                            ["%path"=>$path]
                         );
                     }
                 }

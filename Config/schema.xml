@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<database defaultIdMethod="native" name="thelia"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="../../../../core/vendor/propel/propel/resources/xsd/database.xsd" >
+
+    <!-- Categories to exclude from export -->
+    <table name="lengow_exclude_category" namespace="Lengow\Model">
+        <column name="id" autoIncrement="true" primaryKey="true" required="true" type="INTEGER" />
+        <column name="category_id" type="INTEGER" required="true"/>
+        <foreign-key foreignTable="category" name="fk_category_id" onDelete="CASCADE">
+            <reference local="category_id" foreign="id" />
+        </foreign-key>
+        <unique>
+            <unique-column name="category_id" />
+        </unique>
+    </table>
+
+    <!-- Brands to exclude from export -->
+    <table name="lengow_exclude_brand" namespace="Lengow\Model">
+        <column name="id" autoIncrement="true" primaryKey="true" required="true" type="INTEGER" />
+        <column name="brand_id" type="INTEGER" required="true"/>
+        <foreign-key foreignTable="brand" name="fk_brand_id" onDelete="CASCADE">
+            <reference local="brand_id" foreign="id" />
+        </foreign-key>
+        <unique>
+            <unique-column name="brand_id" />
+        </unique>
+    </table>
+
+    <!-- Products to exclude from export -->
+    <table name="lengow_exclude_product" namespace="Lengow\Model">
+        <column name="id" autoIncrement="true" primaryKey="true" required="true" type="INTEGER" />
+        <column name="product_id" type="INTEGER" required="true"/>
+        <foreign-key foreignTable="product" name="fk_product_id" onDelete="CASCADE">
+            <reference local="product_id" foreign="id" />
+        </foreign-key>
+        <unique>
+            <unique-column name="product_id" />
+        </unique>
+    </table>
+
+    <!-- Attributes to include into the export -->
+    <table name="lengow_include_attribute" namespace="Lengow\Model">
+        <column name="id" autoIncrement="true" primaryKey="true" required="true" type="INTEGER" />
+        <column name="attribute_id" type="INTEGER" required="true"/>
+        <foreign-key foreignTable="attribute" name="fk_attribute_id" onDelete="CASCADE">
+            <reference local="attribute_id" foreign="id" />
+        </foreign-key>
+        <unique>
+            <unique-column name="attribute_id" />
+        </unique>
+    </table>
+
+    <external-schema filename="local/config/schema.xml" referenceOnly="true" />
+</database>

@@ -9,10 +9,10 @@
     </descriptive>
     <version>1.0</version>
     <author>
-        <name>Benjamin Perche</name>
-        <email>bperche@openstudio.fr</email>
+        <name>Benjamin Perche, Romain Ducher</name>
+        <email>benjamin@thelia.net, rducher@openstudio.fr</email>
     </author>
     <type>classic</type>
-    <thelia>2.0.3</thelia>
-    <stability>beta</stability>
+    <thelia>2.1.0</thelia>
+    <stability>prod</stability>
 </module>

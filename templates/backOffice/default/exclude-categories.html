@@ -1,0 +1,14 @@
+{* Template which displays categories recursively. *}
+{* Parameter : $rootcid : Root category's ID *}
+{loop type='category-tree' name="category-tree-$rootcid" category="$rootcid" depth='1'}
+<optgroup label="{$TITLE}">
+    {* Products belonging to this category *}
+    {loop type='product' name="product-category-$rootcid" category=$ID}
+    <option value="{$ID}">{$REF}</option>
+    {/loop}
+    {* Subcategories *}
+    {ifloop rel="category-tree-$ID"}
+        {include file='exclude-categories.html' rootcid="$ID"}
+    {/ifloop}
+</optgroup>
+{/loop}

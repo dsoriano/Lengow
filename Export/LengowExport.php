@@ -12,6 +12,14 @@
 
 namespace Lengow\Export;
 
+use Lengow\Model\LengowExcludeBrandQuery;
+use Lengow\Model\LengowExcludeCategoryQuery;
+use Lengow\Model\LengowExcludeProductQuery;
+use Lengow\Model\LengowIncludeAttributeQuery;
+use Lengow\Model\Map\LengowExcludeBrandTableMap;
+use Lengow\Model\Map\LengowExcludeCategoryTableMap;
+use Lengow\Model\Map\LengowExcludeProductTableMap;
+use Lengow\Model\Map\LengowIncludeAttributeTableMap;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Runtime\Collection\ArrayCollection;
@@ -117,12 +125,17 @@ class LengowExport extends ExportHandler
         $deliveryPrice = ConfigQuery::read("lengow_delivery_price", "5.90");
         $freeDeliveryAmount = ConfigQuery::read("lengow_free_delivery_price", 60);
 
-        // 35,41,40,39,15,18,25,26,24,27,29,47,64,63,66,67,68,51)
-        $excludeCategories = explode(",", ConfigQuery::read("lengow_category_exclude", ""));
+        // Exclude categories
+        $excludeCategories = LengowExcludeCategoryQuery::create()->select([LengowExcludeCategoryTableMap::CATEGORY_ID])->find()->toArray();
+        $excludeCategories[] = -1;
 
-        if (empty($excludeCategories)) {
-            $excludeCategories = "-1";
-        }
+        // Exclude brands
+        $excludeBrands = LengowExcludeBrandQuery::create()->select([LengowExcludeBrandTableMap::BRAND_ID])->find()->toArray();
+        $excludeBrands[] = -1;
+
+        // Exclude some products
+        $excludeProducts = LengowExcludeProductQuery::create()->select([LengowExcludeProductTableMap::PRODUCT_ID])->find()->toArray();
+        $excludeProducts[] = -1;
 
         /**
          * Build categories tree ( id => top level name )
@@ -159,6 +172,16 @@ class LengowExport extends ExportHandler
                     ->filterByVisible(1)
                 ->endUse()
             ->endUse()
+            ->useProductCategoryQuery()
+                ->useCategoryQuery()
+                    ->filterById($excludeCategories, Criteria::NOT_IN)
+                    ->filterByVisible(1)
+                ->endUse()
+            ->endUse()
+            ->useBrandQuery()
+                ->filterById($excludeBrands, Criteria::NOT_IN)
+            ->endUse()
+            ->filterById($excludeProducts, Criteria::NOT_IN)
             ->filterByVisible(1)
             ->groupById()
             ->select(ProductTableMap::getFieldNames())
@@ -245,7 +268,7 @@ class LengowExport extends ExportHandler
             $row["breadcrumb"] = $categories[(int) $product->getVirtualColumn("category_ID")];
             $row["brand"] = $product->getVirtualColumn("brand_TITLE");
             $row["updated_at"] = $product->getUpdatedAt($lang->getDatetimeFormat());
-            $row["url"] = $product->getUrl($locale);
+            $row["url"] = $this->formatUrl($product->getUrl($locale));
             $row["currency"] = $defaultCurrencyCode;
 
             $description = $product->getVirtualColumn("product_DESCRIPTION");
@@ -276,7 +299,7 @@ class LengowExport extends ExportHandler
                 $dispatcher = $this->container->get('event_dispatcher');
                 // Dispatch image processing event
                 $dispatcher->dispatch(TheliaEvents::IMAGE_PROCESS, $event);
-                $row["url_image"] = $event->getFileUrl();
+                $row["url_image"] = $this->formatUrl($event->getFileUrl());
 
                 /**
                  * Get small size image link
@@ -285,7 +308,7 @@ class LengowExport extends ExportHandler
                 $eventSmallImage->setCacheSubdirectory($cacheSubdirectory);
 
                 $dispatcher->dispatch(TheliaEvents::IMAGE_PROCESS, $eventSmallImage);
-                $row["url_image_small"] = $eventSmallImage->getFileUrl();
+                $row["url_image_small"] = $this->formatUrl($eventSmallImage->getFileUrl());
             }
 
             /**
@@ -473,7 +496,8 @@ class LengowExport extends ExportHandler
 
     protected function getAttributesTable(ObjectCollection $productSaleElements, $locale)
     {
-        $allowedAttributes = ConfigQuery::read("lengow_allowed_attributes_id");
+        // Include allowed attributes
+        $allowedAttributes = LengowIncludeAttributeQuery::create()->select([LengowIncludeAttributeTableMap::ATTRIBUTE_ID])->find()->toArray();
 
         $attributesQuery = AttributeCombinationQuery::create()
             ->filterByProductSaleElements($productSaleElements)
@@ -484,7 +508,7 @@ class LengowExport extends ExportHandler
             ->endUse()
             ->useAttributeQuery(null, Criteria::LEFT_JOIN)
                 ->_if(!empty($allowedAttributes))
-                    ->filterById(explode(",", $allowedAttributes), Criteria::IN)
+                    ->filterById($allowedAttributes, Criteria::IN)
                 ->_endif()
                 ->orderByPosition()
                 ->useAttributeI18nQuery()
@@ -594,4 +618,13 @@ class LengowExport extends ExportHandler
         ];
     }
 
+    /**
+     * Remove accents from URL
+     * @param string $url
+     * @return string
+     */
+    private function formatUrl($url)
+    {
+        return iconv('UTF-8', 'ASCII//TRANSLIT', $url);
+    }
 }

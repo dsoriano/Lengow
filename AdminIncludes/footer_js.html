@@ -1,0 +1,143 @@
+{default_translation_domain domain='lengow'}
+<script>
+    $(document).ready(function () {
+        productSearch(); {* Product global search *}
+
+        {* Add the product reference in the input *}
+        $('#select-exclude-product').change(function (event) {
+            $('#input-exclude-product').val($(this).val());
+        });
+
+        {* Exclude a product *}
+        $('#exclude-product').click(function (event) {
+            $.get('{url path="/admin/module/Lengow/excludeproduct"}', { q : $('#input-exclude-product').val() }, function (data) {
+                if (data === "false") {
+                    return;
+                }
+
+                var productId = data['product.ID'];
+                var productRef = data['product.REF'];
+
+                if ($('#lengow-exclude-product-' + productId).length > 0) {
+                    {* The line is already in the table. Do not add it. *}
+                    return;
+                }
+
+                var newRow = $('<tr>');
+                newRow.attr('id', 'lengow-exclude-product-' + productId);
+                newRow.addClass('lengow-exclude-product-row');
+
+                var col1 = $('<td>');
+                col1.addClass('product-id-col');
+                var cb = $('<input>');
+                cb.attr('type', 'checkbox');
+                cb.attr('name', $('#exclude-products-ids_field-name').attr('data-code'));
+                cb.attr('value', productId);
+                cb.attr('checked', 'checked');
+                cb.css('display', 'none');
+                col1.append(cb).append(productId);
+
+                var col2 = $('<td>');
+                col2.html(productRef);
+
+                var col3 = $('<td>');
+                var linkDelete = $('<a>');
+                linkDelete.addClass('btn').addClass('btn-default').addClass('btn-xs').addClass('lengow-exclude-product-delete');
+                linkDelete.attr('title', "{intl l='Do not exclude this product'}");
+                linkDelete.attr('data-toggle', 'modal');
+                var glyphiconTrash = $('<i>');
+                glyphiconTrash.addClass('glyphicon').addClass('glyphicon-trash');
+                linkDelete.append(glyphiconTrash);
+                col3.append(linkDelete);
+
+                newRow.append(col1).append(col2).append(col3);
+
+                $('#lengow-excluded-products').append(newRow);
+                $('.lengow-exclude-product-delete').unbind().click(lengowExcludeProductDelete);
+            });
+        });
+
+        {* Remove the product from exclusion *}
+        $('.lengow-exclude-product-delete').click(lengowExcludeProductDelete);
+
+        function productSearch() {
+            {* Product search *}
+            $('#select-exclude-product').hide();
+
+            var timer = null;
+            $('#input-exclude-product').keyup(function (event) {
+                if ( $(this).val().length > 2 ) {
+                    {* Starting smart search *}
+                    var selectHtml = '';
+
+                    if (timer !== null) {
+                        clearTimeout(timer);
+                    }
+
+                    timer = setTimeout(function(elem) {
+                        // Searching...
+                        $.get('{url path="/admin/module/Lengow/excludeproductsearch"}', { q : $(elem).val() }, function(data) {
+                            if (data === "false") {
+                                return;
+                            }
+
+                            {* Brands *}
+                            if (data.brands != undefined) {
+                                selectHtml += buildOptgroups("{intl l='Brands'}", data.brands).html();
+                            }
+
+                            {* Categories *}
+                            if (data.categories != undefined) {
+                                selectHtml += buildOptgroups("{intl l='Categories'}", data.categories).html();
+                            }
+
+                            $('#select-exclude-product').html(selectHtml);
+                            $('#select-exclude-product').show(200);
+                        });
+
+                    }, 500, this);
+                }
+                else if ( $(this).val().length === 0 ) {
+                    $('#select-exclude-product').hide(200);
+                }
+            });
+        }
+
+        function buildOptgroups(title, object) {
+            var res = '';
+
+            if (object != [] && object != undefined) {
+                var res = $('<optgroup>');
+                res.attr('label', title);
+
+                $.each(object, function (k,v) {
+                    if (k === parseInt(k, 10)) {
+                        {* Do not belong to anything, just add it as a product *}
+                        var prodOption = $('<option>');
+                        prodOption.attr('value', v.ref);
+                        prodOption.html(v.ref + " ({intl l='no brand'})");
+                        res.append(prodOption);
+                    }
+                    else if (v.length > 0) {
+                        var optgroup = $('<optgroup>');
+                        optgroup.attr('label', k);
+
+                        $.each(v, function (key, value) {
+                            var prodOption = $('<option>');
+                            prodOption.attr('value', value.ref);
+                            prodOption.html(value.ref);
+                            optgroup.append(prodOption);
+                        });
+                        res.append(optgroup);
+                    }
+                });
+            }
+
+            return res;
+        }
+
+        function lengowExcludeProductDelete (event) {
+            $(this).closest('.lengow-exclude-product-row').remove();
+        }
+    });
+</script>

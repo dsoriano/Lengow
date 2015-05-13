@@ -11,12 +11,42 @@
 /*************************************************************************************/
 
 namespace Lengow\Controller;
+
+use Lengow\Event\LengowExcludeBrandEvent;
+use Lengow\Event\LengowExcludeBrandEvents;
+use Lengow\Event\LengowExcludeCategoryEvent;
+use Lengow\Event\LengowExcludeCategoryEvents;
+use Lengow\Event\LengowExcludeProductEvent;
+use Lengow\Event\LengowExcludeProductEvents;
+use Lengow\Event\LengowIncludeAttributeEvent;
+use Lengow\Event\LengowIncludeAttributeEvents;
 use Lengow\Form\LengowConfigForm;
+use Lengow\Lengow;
+use Lengow\Model\LengowExcludeBrand;
+use Lengow\Model\LengowExcludeBrandQuery;
+use Lengow\Model\LengowExcludeCategory;
+use Lengow\Model\LengowExcludeCategoryQuery;
+use Lengow\Model\LengowExcludeProduct;
+use Lengow\Model\LengowExcludeProductQuery;
+use Lengow\Model\LengowIncludeAttribute;
+use Lengow\Model\LengowIncludeAttributeQuery;
+use Propel\Runtime\ActiveQuery\Criteria;
+use Symfony\Component\Form\Form;
 use Thelia\Controller\Admin\BaseAdminController;
+use Thelia\Core\HttpFoundation\JsonResponse;
+use Thelia\Core\HttpFoundation\Response;
 use Thelia\Core\Security\AccessManager;
 use Thelia\Core\Security\Resource\AdminResources;
 use Thelia\Form\Exception\FormValidationException;
+use Thelia\Model\Base\BrandQuery;
 use Thelia\Model\ConfigQuery;
+use Thelia\Model\Map\BrandI18nTableMap;
+use Thelia\Model\Map\BrandTableMap;
+use Thelia\Model\Map\CategoryI18nTableMap;
+use Thelia\Model\Map\CategoryTableMap;
+use Thelia\Model\Map\ProductTableMap;
+use Thelia\Model\Product;
+use Thelia\Model\ProductQuery;
 
 /**
  * Class LengowConfigurationController
@@ -34,18 +64,19 @@ class LengowConfigurationController extends BaseAdminController
         $errorMessage = null;
         $successMessage = null;
 
-        $form = new LengowConfigForm($this->getRequest());
+        $form = $this->createForm('lengow-configuration');
 
         try {
             $boundForm = $this->validateForm($form);
 
             ConfigQuery::write("lengow_min_quantity_export", $boundForm->get("min-stock")->getData());
             ConfigQuery::write("lengow_cache_time", $boundForm->get("front-cache-time")->getData());
-            ConfigQuery::write("lengow_category_exclude", $boundForm->get("exclude-categories-ids")->getData());
             ConfigQuery::write("lengow_free_delivery_price", $boundForm->get("free-shipping-amount")->getData());
             ConfigQuery::write("lengow_delivery_price", $boundForm->get("delivery-price")->getData());
-            ConfigQuery::write("lengow_allowed_attributes_id", $boundForm->get("allowed-attributes-ids")->getData());
+            ConfigQuery::write('lengow_max_search_products_results', $boundForm->get('max-search-results-products')->getData());
 
+            // Rewriting IDs for Lengow
+            $this->updateIdsForLengow($boundForm);
         } catch (FormValidationException $e) {
             $errorMessage = $this->createStandardFormValidationErrorMessage($e);
         } catch (\Exception $e) {
@@ -59,13 +90,14 @@ class LengowConfigurationController extends BaseAdminController
                 $form
             );
         } else {
-
             if ($this->getRequest()->request->get("save_mode") === "close") {
                 $this->redirectToRoute("admin.module");
             }
 
             $successMessage = $this->getTranslator()->trans(
-                "Configuration successfully saved"
+                'Configuration successfully saved',
+                [],
+                Lengow::MESSAGE_DOMAIN
             );
         }
 
@@ -76,5 +108,181 @@ class LengowConfigurationController extends BaseAdminController
                 "success_message" => $successMessage,
             )
         );
+    }
+
+    /**
+     * Updating IDs to exclude or include for Lengow
+     * @param \Symfony\Component\Form\Form $boundForm
+     * @throws \Exception
+     * @throws \Propel\Runtime\Exception\PropelException
+     */
+    protected function updateIdsForLengow(Form $boundForm)
+    {
+        // Attributes
+        $this->dispatch(LengowIncludeAttributeEvents::DELETE_ALL, new LengowIncludeAttributeEvent());
+
+        foreach ($boundForm->get('allowed-attributes-ids')->getData() as $id) {
+            $event = new LengowIncludeAttributeEvent();
+            $event->setAttributeId($id);
+            $this->dispatch(LengowIncludeAttributeEvents::CREATE, $event);
+        }
+
+        // Brands
+        $this->dispatch(LengowExcludeBrandEvents::DELETE_ALL, new LengowExcludeBrandEvent());
+
+        foreach ($boundForm->get('exclude-brands-ids')->getData() as $id) {
+            $event = new LengowExcludeBrandEvent();
+            $event->setBrandId($id);
+            $this->dispatch(LengowExcludeBrandEvents::CREATE, $event);
+        }
+
+        // Categories
+        $this->dispatch(LengowExcludeCategoryEvents::DELETE_ALL, new LengowExcludeCategoryEvent());
+
+        foreach ($boundForm->get('exclude-categories-ids')->getData() as $id) {
+            $event = new LengowExcludeCategoryEvent();
+            $event->setCategoryId($id);
+            $this->dispatch(LengowExcludeCategoryEvents::CREATE, $event);
+        }
+
+        // Products
+        $this->dispatch(LengowExcludeProductEvents::DELETE_ALL, new LengowExcludeProductEvent());
+
+        foreach (array_unique($boundForm->get('exclude-products-ids')->getData()) as $id) {
+            $event = new LengowExcludeProductEvent();
+            $event->setProductId($id);
+            $this->dispatch(LengowExcludeProductEvents::CREATE, $event);
+        }
+    }
+
+    public function searchProducts()
+    {
+        if (null !== $this->checkAuth([AdminResources::MODULE], ['Lengow'], AccessManager::VIEW)) {
+            return Response::create("false");
+        }
+
+        $search = $this->getRequest()->query->get('q', '');
+        $res = $this->doSearchProducts($search);
+
+        return JsonResponse::create($res);
+    }
+
+    protected function doSearchProducts($search)
+    {
+        $productQuery = $this->doProductQuerySearch(
+            $search,
+            intval(ConfigQuery::read('lengow_max_search_products_results', 0))
+        );
+
+        $res = array(
+            'brands' => array(),
+            'categories' => array(),
+        );
+
+        foreach ($productQuery as $product) {
+            $resprod = array(
+                'id' => $product[ProductTableMap::ID],
+                'ref' => $product[ProductTableMap::REF],
+            );
+
+            // Brands filter
+            if ($product[ProductTableMap::BRAND_ID] == 0) {
+                $res['brands'][] = $resprod;
+            } else {
+                if (!array_key_exists($product['brand_NAME'], $res['brands'])) {
+                    $res['brands'][$product['brand_NAME']] = array();
+                }
+
+                $res['brands'][$product['brand_NAME']][] = $resprod;
+            }
+
+            // Categories filter
+            if ($product['category_ID'] == 0) {
+                $res['categories'][] = $resprod;
+            } else {
+                if (!array_key_exists($product['rubric_TITLE'], $res['categories'])) {
+                    $res['categories'][$product['rubric_TITLE']] = array();
+                }
+
+                $res['categories'][$product['rubric_TITLE']][] = $resprod;
+            }
+        }
+
+        return $res;
+    }
+
+    protected function doProductQuerySearch($search, $maxres)
+    {
+        $locale = $this->getSession()->getAdminEditionLang()->getLocale();
+        $productQuery = ProductQuery::create()
+            ->select([ProductTableMap::ID, ProductTableMap::REF, ProductTableMap::BRAND_ID])
+            ->useProductCategoryQuery(null, Criteria::LEFT_JOIN)
+                ->addAsColumn("category_ID", CategoryTableMap::ID)
+                ->filterByDefaultCategory(1)
+                ->useCategoryQuery(null, Criteria::LEFT_JOIN)
+                    ->useCategoryI18nQuery()
+                        ->filterByLocale($locale)
+                        ->addAsColumn("rubric_TITLE", CategoryI18nTableMap::TITLE)
+                    ->endUse()
+                ->endUse()
+            ->endUse()
+            ->useBrandQuery()
+                ->useBrandI18nQuery()
+                    ->addAsColumn('brand_NAME', BrandI18nTableMap::TITLE)
+                    ->filterByLocale($locale)
+                ->endUse()
+            ->endUse()
+            ->filterByRef("%$search%", Criteria::LIKE)
+        ;
+
+        // Limit the number of results
+        $limited = ($maxres > 0);
+        $limited and $productQuery = $productQuery->limit($maxres);
+
+        $productQuery = $productQuery->find()->toArray();
+
+        // Add some unbranded products to the results
+        if (!$limited or ($limited and ($maxres > count($productQuery)))) {
+            $unbrandedProductQuery = ProductQuery::create()
+                ->select([ProductTableMap::ID, ProductTableMap::REF, ProductTableMap::BRAND_ID])
+                ->useProductCategoryQuery(null, Criteria::LEFT_JOIN)
+                    ->addAsColumn("category_ID", CategoryTableMap::ID)
+                    ->filterByDefaultCategory(1)
+                    ->useCategoryQuery(null, Criteria::LEFT_JOIN)
+                        ->useCategoryI18nQuery()
+                            ->filterByLocale($locale)
+                            ->addAsColumn("rubric_TITLE", CategoryI18nTableMap::TITLE)
+                        ->endUse()
+                    ->endUse()
+                ->endUse()
+                ->filterByRef("%$search%", Criteria::LIKE)
+                ->filterByBrandId(null)
+            ;
+
+            $limited and $unbrandedProductQuery = $unbrandedProductQuery->limit($maxres - count($productQuery));
+
+            $unbrandedProductQuery = $unbrandedProductQuery->find()->toArray();
+            $productQuery = array_merge($productQuery, $unbrandedProductQuery);
+        }
+
+        return $productQuery;
+    }
+
+    public function searchProduct()
+    {
+        if (null !== $this->checkAuth([AdminResources::MODULE], ['Lengow'], AccessManager::VIEW)) {
+            return Response::create("false");
+        }
+
+        $search = $this->getRequest()->query->get('q', '');
+
+        $product = ProductQuery::create()
+            ->select([ProductTableMap::ID, ProductTableMap::REF])
+            ->filterByRef($search)
+            ->find()
+            ->toArray()
+        ;
+
+        return (count($product) > 0) ?  JsonResponse::create(array_pop($product)) : Response::create("false");
     }
 }
