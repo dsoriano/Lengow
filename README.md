@@ -1,10 +1,9 @@
-* [Anglais](#english).
-* [Français](#francais).
-
-<a name="english"></a>
-
 Lengow module v1.0
 ===
+
+* [English](#english).
+* [French](#francais).
+
 Authors: [Benjamin Perche](benjamin@thelia.net) and [Romain Ducher](rducher@openstudio.fr)
 
 1. Installation
@@ -49,6 +48,10 @@ amount of products. Precise this number here. Write 0 if you do not want a limit
 
 Module Lengow v1.0
 ===
+
+* [Anglais](#english).
+* [Français](#francais).
+   
 Auteurs : [Benjamin Perche](benjamin@thelia.net) et [Romain Ducher](rducher@openstudio.fr)
 
 
