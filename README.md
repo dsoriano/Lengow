@@ -1,13 +1,11 @@
 * [Anglais](#english).
-* [Français](#enfrancaisdansletexte).
+* [Français](#francais).
 
 <a name="english"></a>
 
 Lengow module v1.0
 ===
 Authors: [Benjamin Perche](benjamin@thelia.net) and [Romain Ducher](rducher@openstudio.fr)
-
-Pour le français c'est [ici](#enfrancaisdansletexte).
 
 1. Installation
 ---
@@ -47,7 +45,7 @@ amount of products. Precise this number here. Write 0 if you do not want a limit
 
 ***
 
-<a name="enfrancaisdansletexte"></a>
+<a name="francais"></a>
 
 Module Lengow v1.0
 ===
