@@ -6,7 +6,7 @@ Lengow module v1.0
 * [English](#english).
 * [French](#francais).
 
-Authors: [Benjamin Perche](benjamin@thelia.net) and [Romain Ducher](rducher@openstudio.fr)
+Authors: [Benjamin Perche](mailto://benjamin@thelia.net) and [Romain Ducher](mailto://rducher@openstudio.fr)
 
 1. Installation
 ---
@@ -54,7 +54,7 @@ Module Lengow v1.0
 * [Anglais](#english).
 * [Français](#francais).
    
-Auteurs : [Benjamin Perche](benjamin@thelia.net) et [Romain Ducher](rducher@openstudio.fr)
+Auteurs : [Benjamin Perche](mailto://benjamin@thelia.net) et [Romain Ducher](mailto://rducher@openstudio.fr)
 
 
 1. Installation
