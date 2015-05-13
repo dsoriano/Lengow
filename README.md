@@ -1,3 +1,8 @@
+* [Anglais](#english).
+* [Français](#enfrancaisdansletexte).
+
+<a name="english"></a>
+
 Lengow module v1.0
 ===
 Authors: [Benjamin Perche](benjamin@thelia.net) and [Romain Ducher](rducher@openstudio.fr)
