@@ -10,26 +10,23 @@
 /*      file that was distributed with this source code.                             */
 /*************************************************************************************/
 
-namespace Lengow\Export;
+namespace Lengow\FileFormat\Formatting;
 
-use Lengow\FileFormat\Formatting\Formatter\CSVFormatter;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Class LengowFormatter
- * @package Lengow\Export
+ * Trait FormatterManagerTrait
+ * @package Lengow\FileFormat\Formatter
  * @author Benjamin Perche <bperche@openstudio.fr>
  */
-class LengowFormatter extends CSVFormatter
+trait FormatterManagerTrait
 {
-    public $lineReturn = "\r\n";
-
-    public function getName()
+    /**
+     * @param  ContainerInterface                                  $container
+     * @return \Lengow\FileFormat\Formatting\FormatterManager
+     */
+    public function getFormatterManager(ContainerInterface $container)
     {
-        return "Lengow";
-    }
-
-    public function getHandledType()
-    {
-        return LengowType::LENGOW_EXPORT;
+        return $container->get("thelia.manager.formatter_manager");
     }
 }

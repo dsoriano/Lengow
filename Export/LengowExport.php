@@ -30,7 +30,7 @@ use Symfony\Component\Validator\Constraints\Collection;
 use Thelia\Core\Event\Image\ImageEvent;
 use Thelia\Core\Event\TheliaEvents;
 use Thelia\Core\Template\Element\BaseLoop;
-use Thelia\ImportExport\Export\ExportHandler;
+use Lengow\ImportExport\Export\ExportHandler;
 
 use Thelia\Model\Country;
 use Thelia\Model\Currency;
@@ -73,7 +73,7 @@ class LengowExport extends ExportHandler
      * return a string if it handle a single type ( specific exports ),
      * or an array if multiple.
      *
-     * Thelia types are defined in \Thelia\Core\FileFormat\FormatType
+     * Thelia types are defined in \Lengow\FileFormat\FormatType
      *
      * example:
      * return array(

@@ -10,26 +10,13 @@
 /*      file that was distributed with this source code.                             */
 /*************************************************************************************/
 
-namespace Lengow\Export;
-
-use Lengow\FileFormat\Formatting\Formatter\CSVFormatter;
+namespace Lengow\FileFormat\Archive\ArchiveBuilder\Exception;
 
 /**
- * Class LengowFormatter
- * @package Lengow\Export
+ * Class ZipArchiveException
+ * @package Lengow\FileFormat\Archive\ArchiveBuilder
  * @author Benjamin Perche <bperche@openstudio.fr>
  */
-class LengowFormatter extends CSVFormatter
+class ZipArchiveException extends \ErrorException
 {
-    public $lineReturn = "\r\n";
-
-    public function getName()
-    {
-        return "Lengow";
-    }
-
-    public function getHandledType()
-    {
-        return LengowType::LENGOW_EXPORT;
-    }
 }

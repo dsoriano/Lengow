@@ -10,26 +10,23 @@
 /*      file that was distributed with this source code.                             */
 /*************************************************************************************/
 
-namespace Lengow\Export;
+namespace Lengow\FileFormat\Archive;
 
-use Lengow\FileFormat\Formatting\Formatter\CSVFormatter;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Class LengowFormatter
- * @package Lengow\Export
+ * Trait ArchiveBuilderManagerTrait
+ * @package Lengow\FileFormat\Archive
  * @author Benjamin Perche <bperche@openstudio.fr>
  */
-class LengowFormatter extends CSVFormatter
+trait ArchiveBuilderManagerTrait
 {
-    public $lineReturn = "\r\n";
-
-    public function getName()
+    /**
+     * @param  ContainerInterface                                    $container
+     * @return \Lengow\FileFormat\Archive\ArchiveBuilderManager
+     */
+    public function getArchiveBuilderManager(ContainerInterface $container)
     {
-        return "Lengow";
-    }
-
-    public function getHandledType()
-    {
-        return LengowType::LENGOW_EXPORT;
+        return $container->get("thelia.manager.archive_builder_manager");
     }
 }

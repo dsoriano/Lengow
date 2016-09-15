@@ -10,26 +10,43 @@
 /*      file that was distributed with this source code.                             */
 /*************************************************************************************/
 
-namespace Lengow\Export;
-
-use Lengow\FileFormat\Formatting\Formatter\CSVFormatter;
+namespace Lengow\FileFormat\Archive\ArchiveBuilder;
 
 /**
- * Class LengowFormatter
- * @package Lengow\Export
+ * Class TarBz2ArchiveBuilder
+ * @package Lengow\FileFormat\Archive\ArchiveBuilder
  * @author Benjamin Perche <bperche@openstudio.fr>
  */
-class LengowFormatter extends CSVFormatter
+class TarBz2ArchiveBuilder extends TarArchiveBuilder
 {
-    public $lineReturn = "\r\n";
-
     public function getName()
     {
-        return "Lengow";
+        return "tar.bz2";
     }
 
-    public function getHandledType()
+    public function getMimeType()
     {
-        return LengowType::LENGOW_EXPORT;
+        return "application/x-bzip2";
+    }
+
+    public function getExtension()
+    {
+        return "tbz2";
+    }
+
+    protected function compressionEntryPoint()
+    {
+        if ($this->compression != \Phar::BZ2) {
+            $this->tar = $this->tar->compress(\Phar::BZ2, $this->getExtension());
+        }
+
+        $this->compression = \Phar::BZ2;
+
+        return $this;
+    }
+
+    public function isAvailable()
+    {
+        return parent::isAvailable() && extension_loaded("bz2");
     }
 }

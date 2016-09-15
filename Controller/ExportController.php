@@ -17,7 +17,7 @@ use Lengow\Export\LengowFormatter;
 use Lengow\Lengow;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
-use Thelia\Controller\Admin\ExportController as BaseExportController;
+use Lengow\Controller\Base\BaseExportController;
 use Thelia\Core\HttpFoundation\Response;
 use Thelia\Exception\FileException;
 use Thelia\Model\ConfigQuery;
@@ -40,11 +40,13 @@ class ExportController extends BaseExportController
 
     public function lengowExport()
     {
+        ini_set("memory_limit",-1);
         return Response::create($this->buildExportDatas());
     }
 
     public function lengowManualExport()
     {
+        ini_set("memory_limit",-1);
         $this->buildExportDatas();
         $response = new BinaryFileResponse($this->getLengowFileInfo());
         $response->headers->set('Content-Type', 'text/csv');

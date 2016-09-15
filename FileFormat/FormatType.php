@@ -10,26 +10,24 @@
 /*      file that was distributed with this source code.                             */
 /*************************************************************************************/
 
-namespace Lengow\Export;
-
-use Lengow\FileFormat\Formatting\Formatter\CSVFormatter;
+namespace Lengow\FileFormat;
 
 /**
- * Class LengowFormatter
- * @package Lengow\Export
+ * Class FormatType
+ * @package Lengow\FileFormat
  * @author Benjamin Perche <bperche@openstudio.fr>
  */
-class LengowFormatter extends CSVFormatter
+class FormatType
 {
-    public $lineReturn = "\r\n";
+    /**
+     * This type is for unbounded formats, in general serialization formats
+     * example: XML, json, yaml
+     */
+    const UNBOUNDED  = "export.unbounded";
 
-    public function getName()
-    {
-        return "Lengow";
-    }
-
-    public function getHandledType()
-    {
-        return LengowType::LENGOW_EXPORT;
-    }
+    /**
+     * This type is for tabled format ( matrix ), most used by spreadsheet application.
+     * example:  CSV, ODS, XLS
+     */
+    const TABLE      = "export.table";
 }

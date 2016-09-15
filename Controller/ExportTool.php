@@ -13,9 +13,9 @@
 namespace Lengow\Controller;
 
 use Thelia\Controller\Admin\ExportController as BaseExportController;
-use Thelia\Core\FileFormat\Archive\AbstractArchiveBuilder;
-use Thelia\Core\FileFormat\Formatting\AbstractFormatter;
-use Thelia\ImportExport\Export\ExportHandler;
+use Lengow\FileFormat\Archive\AbstractArchiveBuilder;
+use Lengow\FileFormat\Formatting\AbstractFormatter;
+use Lengow\ImportExport\Export\ExportHandler;
 use Thelia\Model\Lang;
 
 /**
