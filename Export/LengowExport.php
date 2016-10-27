@@ -287,29 +287,34 @@ class LengowExport extends ExportHandler
                 /** @var \Thelia\Model\ProductImage $image */
                 $image = $images->get(0);
 
-                $sourceFilepath = $image->getUploadDir() . DS . $image->getFile();
-                $cacheSubdirectory = basename($image->getUploadDir());
+                try {
+                    $sourceFilepath = $image->getUploadDir() . DS . $image->getFile();
+                    $cacheSubdirectory = basename($image->getUploadDir());
 
-                $event->setSourceFilepath($sourceFilepath);
-                $event->setCacheSubdirectory($cacheSubdirectory);
+                    $event->setSourceFilepath($sourceFilepath);
+                    $event->setCacheSubdirectory($cacheSubdirectory);
 
-                /**
-                 * Get real size image link
-                 */
-                $dispatcher = $this->container->get('event_dispatcher');
-                // Dispatch image processing event
-                $dispatcher->dispatch(TheliaEvents::IMAGE_PROCESS, $event);
-                $row["url_image"] = $this->formatUrl($event->getFileUrl());
+                    /**
+                     * Get real size image link
+                     */
+                    $dispatcher = $this->container->get('event_dispatcher');
+                    // Dispatch image processing event
+                    $dispatcher->dispatch(TheliaEvents::IMAGE_PROCESS, $event);
+                    $row["url_image"] = $this->formatUrl($event->getFileUrl());
 
-                /**
-                 * Get small size image link
-                 */
-                $eventSmallImage->setSourceFilepath($sourceFilepath);
-                $eventSmallImage->setCacheSubdirectory($cacheSubdirectory);
+                    /**
+                     * Get small size image link
+                     */
+                    $eventSmallImage->setSourceFilepath($sourceFilepath);
+                    $eventSmallImage->setCacheSubdirectory($cacheSubdirectory);
 
-                $dispatcher->dispatch(TheliaEvents::IMAGE_PROCESS, $eventSmallImage);
-                $row["url_image_small"] = $this->formatUrl($eventSmallImage->getFileUrl());
+                    $dispatcher->dispatch(TheliaEvents::IMAGE_PROCESS, $eventSmallImage);
+                    $row["url_image_small"] = $this->formatUrl($eventSmallImage->getFileUrl());
+                } catch (\Exception $e) {
+                    $row["url_image"] = $row["url_image_small"] = '';
+                }
             }
+
 
             /**
              * Add pse_related_columns
