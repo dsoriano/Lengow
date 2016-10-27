@@ -7,12 +7,12 @@
     <descriptive locale="fr_FR">
         <title>Exportez votre catalogue vers les marketplaces, les comparateurs de prix et plus avec Lengow</title>
     </descriptive>
-    <version>1.0</version>
+    <version>2.3.0</version>
     <author>
         <name>Benjamin Perche, Romain Ducher</name>
         <email>benjamin@thelia.net, rducher@openstudio.fr</email>
     </author>
     <type>classic</type>
-    <thelia>2.3.1</thelia>
+    <thelia>2.3.0</thelia>
     <stability>prod</stability>
 </module>
