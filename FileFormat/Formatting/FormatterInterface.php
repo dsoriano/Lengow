@@ -10,26 +10,43 @@
 /*      file that was distributed with this source code.                             */
 /*************************************************************************************/
 
-namespace Lengow\Export;
-
-use Lengow\FileFormat\Formatting\Formatter\CSVFormatter;
+namespace Lengow\FileFormat\Formatting;
 
 /**
- * Class LengowFormatter
- * @package Lengow\Export
+ * Interface FormatterInterface
+ * @package Lengow\FileFormat\Formatter
  * @author Benjamin Perche <bperche@openstudio.fr>
  */
-class LengowFormatter extends CSVFormatter
+interface FormatterInterface
 {
-    public $lineReturn = "\r\n";
+    /**
+     * @param  FormatterData $data
+     * @return mixed
+     *
+     * This method must use a FormatterData object and output
+     * a formatted value.
+     */
+    public function encode(FormatterData $data);
 
-    public function getName()
-    {
-        return "Lengow";
-    }
+    /**
+     * @param $rawData
+     * @return FormatterData
+     *
+     * This must takes raw data as argument and outputs
+     * a FormatterData object.
+     */
+    public function decode($rawData);
 
-    public function getHandledType()
-    {
-        return LengowType::LENGOW_EXPORT;
-    }
+    /**
+     * @return string
+     *
+     * return a string that defines the handled format type.
+     *
+     * Thelia types are defined in \Lengow\FileFormat\FormatType
+     *
+     * examples:
+     *   return FormatType::TABLE;
+     *   return FormatType::UNBOUNDED;
+     */
+    public function getHandledType();
 }

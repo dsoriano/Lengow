@@ -9,27 +9,21 @@
 /*      For the full copyright and license information, please view the LICENSE.txt  */
 /*      file that was distributed with this source code.                             */
 /*************************************************************************************/
-
-namespace Lengow\Export;
-
-use Lengow\FileFormat\Formatting\Formatter\CSVFormatter;
+namespace Lengow\ImportExport\Export;
 
 /**
- * Class LengowFormatter
- * @package Lengow\Export
+ * Interface DocumentsExportInterface
+ * @package Lengow\ImportExport
  * @author Benjamin Perche <bperche@openstudio.fr>
  */
-class LengowFormatter extends CSVFormatter
+interface DocumentsExportInterface
 {
-    public $lineReturn = "\r\n";
+    const DOCUMENTS_DIRECTORY = "documents";
 
-    public function getName()
-    {
-        return "Lengow";
-    }
-
-    public function getHandledType()
-    {
-        return LengowType::LENGOW_EXPORT;
-    }
+    /**
+     * @return array
+     *
+     * return an array with the paths to the documents to include in the archive
+     */
+    public function getDocumentsPaths();
 }

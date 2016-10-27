@@ -10,26 +10,43 @@
 /*      file that was distributed with this source code.                             */
 /*************************************************************************************/
 
-namespace Lengow\Export;
-
-use Lengow\FileFormat\Formatting\Formatter\CSVFormatter;
+namespace Lengow\FileFormat\Archive\ArchiveBuilder;
 
 /**
- * Class LengowFormatter
- * @package Lengow\Export
+ * Class TarGzArchiveBuilder
+ * @package Lengow\FileFormat\Archive\ArchiveBuilder
  * @author Benjamin Perche <bperche@openstudio.fr>
  */
-class LengowFormatter extends CSVFormatter
+class TarGzArchiveBuilder extends TarArchiveBuilder
 {
-    public $lineReturn = "\r\n";
-
     public function getName()
     {
-        return "Lengow";
+        return "tar.gz";
     }
 
-    public function getHandledType()
+    public function getMimeType()
     {
-        return LengowType::LENGOW_EXPORT;
+        return "application/x-gzip";
+    }
+
+    public function getExtension()
+    {
+        return "tgz";
+    }
+
+    protected function compressionEntryPoint()
+    {
+        if ($this->compression != \Phar::GZ) {
+            $this->tar = $this->tar->compress(\Phar::GZ, $this->getExtension());
+        }
+
+        $this->compression = \Phar::GZ;
+
+        return $this;
+    }
+
+    public function isAvailable()
+    {
+        return parent::isAvailable() && extension_loaded("zlib");
     }
 }
