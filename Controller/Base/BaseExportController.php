@@ -184,18 +184,13 @@ class BaseExportController extends BaseAdminController
         if ($archiveBuilder === null) {
             $data = $handler->buildData($lang);
 
-            $event->setData($data);
-//            $this->dispatch(TheliaEvents::EXPORT_BEFORE_ENCODE, $event);
-
             $formattedContent = $formatter
                 ->setOrder($handler->getOrder())
                 ->encode($data)
             ;
 
-//            $this->dispatch(TheliaEvents::EXPORT_AFTER_ENCODE, $event->setContent($formattedContent));
-
             return new Response(
-                $event->getContent(),
+                $formattedContent,
                 200,
                 [
                     "Content-Type" => $formatter->getMimeType(),
