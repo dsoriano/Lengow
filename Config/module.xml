@@ -13,6 +13,6 @@
         <email>benjamin@thelia.net, rducher@openstudio.fr</email>
     </author>
     <type>classic</type>
-    <thelia>2.3.0</thelia>
+    <thelia>2.3.1</thelia>
     <stability>prod</stability>
 </module>
