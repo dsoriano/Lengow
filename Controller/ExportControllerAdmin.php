@@ -14,32 +14,32 @@ namespace Lengow\Controller;
 
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
-use Thelia\Core\HttpFoundation\Response;
+use Lengow\Controller\Base\BaseExportController;
 use Lengow\Controller\Base\ExportControllerTrait;
-use Thelia\Controller\Front\BaseFrontController;
-use Thelia\Model\LangQuery;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * Class ExportController
  * @package Lengow\Controller
  * @author Benjamin Perche <bperche@openstudio.fr>
  */
-class ExportController extends BaseFrontController
+class ExportControllerAdmin extends BaseExportController
 {
+
     use ExportControllerTrait;
 
-    public function lengowExport($locale)
+    public function lengowManualExport()
     {
-        $requestedLang = LangQuery::create()->findOneByLocale($locale);
-
-        if ($requestedLang === null || $requestedLang->getVisible() === 0) {
-            throw new NotFoundHttpException('Url not found');
-        }
-
-        $this->lang = $requestedLang;
-
         ini_set("memory_limit",-1);
-        return Response::create($this->buildExportDatas());
+        $this->lang = $this->getSession()->getLang();
+        $this->buildExportDatas();
+        $response = new BinaryFileResponse($this->getLengowFileInfo());
+        $response->headers->set('Content-Type', 'text/csv');
+        $response->setContentDisposition(
+            ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+            'lengow.csv'
+        );
+        return $response;
     }
+
+
 }
