@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <routes xmlns="http://symfony.com/schema/routing" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
-    <route id="lengow.export" path="/lengow/export" methods="get">
+    <route id="lengow.export" path="/lengow/export/{locale}" methods="get">
         <default key="_controller">Lengow\Controller\ExportController::lengowExport</default>
     </route>
 
     <!-- Manual export -->
     <route id="lengow.manexport" path="/lengow/manexport" methods="get">
-        <default key="_controller">Lengow\Controller\ExportController::lengowManualExport</default>
+        <default key="_controller">Lengow\Controller\ExportControllerAdmin::lengowManualExport</default>
     </route>
 
     <route id="lengow.configure" path="/admin/module/Lengow/configuration" methods="post">
