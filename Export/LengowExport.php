@@ -268,7 +268,7 @@ class LengowExport extends ExportHandler
             $row["breadcrumb"] = $categories[(int) $product->getVirtualColumn("category_ID")];
             $row["brand"] = $product->getVirtualColumn("brand_TITLE");
             $row["updated_at"] = $product->getUpdatedAt($lang->getDatetimeFormat());
-            $row["url"] = $this->formatUrl($product->getUrl($locale));
+            $row["url"] = $product->getUrl($locale);
             $row["currency"] = $defaultCurrencyCode;
 
             $description = $product->getVirtualColumn("product_DESCRIPTION");
@@ -300,7 +300,7 @@ class LengowExport extends ExportHandler
                     $dispatcher = $this->container->get('event_dispatcher');
                     // Dispatch image processing event
                     $dispatcher->dispatch(TheliaEvents::IMAGE_PROCESS, $event);
-                    $row["url_image"] = $this->formatUrl($event->getFileUrl());
+                    $row["url_image"] = $event->getFileUrl();
 
                     /**
                      * Get small size image link
@@ -309,7 +309,7 @@ class LengowExport extends ExportHandler
                     $eventSmallImage->setCacheSubdirectory($cacheSubdirectory);
 
                     $dispatcher->dispatch(TheliaEvents::IMAGE_PROCESS, $eventSmallImage);
-                    $row["url_image_small"] = $this->formatUrl($eventSmallImage->getFileUrl());
+                    $row["url_image_small"] = $eventSmallImage->getFileUrl();
                 } catch (\Exception $e) {
                     $row["url_image"] = $row["url_image_small"] = '';
                 }
@@ -621,15 +621,5 @@ class LengowExport extends ExportHandler
             "attributes",
             // Then the attributes
         ];
-    }
-
-    /**
-     * Remove accents from URL
-     * @param string $url
-     * @return string
-     */
-    private function formatUrl($url)
-    {
-        return iconv('UTF-8', 'ASCII//TRANSLIT', $url);
     }
 }

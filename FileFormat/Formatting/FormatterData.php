@@ -56,8 +56,8 @@ class FormatterData
          * Lower all the values
          */
         foreach ($aliases as $key => $value) {
-            $lowerKey = strtolower($key);
-            $lowerValue = strtolower($value);
+            $lowerKey = mb_strtolower($key);
+            $lowerValue = mb_strtolower($value);
             if ($lowerKey !== $key) {
                 $aliases[$lowerKey] = $lowerValue;
                 unset($aliases[$key]);
@@ -143,7 +143,7 @@ class FormatterData
         $formattedData = [];
 
         foreach ($data as $key => $entry) {
-            $key = strtolower($key);
+            $key = mb_strtolower($key);
 
             if (is_array($entry)) {
                 $formattedData[$key] = $this->applyAliases($entry, $aliases);
