@@ -70,8 +70,6 @@ trait ExportControllerTrait
                 200,
                 [
                     "Content-Type" => $formatter->getMimeType(),
-                    "Content-Disposition" =>
-                        "attachment; filename=\"" . $filename . "\"",
                 ]
             );
         } else {
@@ -178,9 +176,17 @@ trait ExportControllerTrait
             file_put_contents($cachePath, $data);
         } else {
             $data = file_get_contents($cachePath);
+
+            $response = new Response(
+                $data,
+                200,
+                [
+                    "Content-Type" => $formatter->getMimeType(),
+                ]
+            );
         }
 
-        return $data;
+        return $response;
     }
 
     protected function getLengowFileCachePath()
