@@ -40,6 +40,6 @@ class ExportController extends BaseFrontController
         $this->lang = $requestedLang;
 
         ini_set("memory_limit",-1);
-        return Response::create($this->buildExportDatas());
+        return $this->buildExportDatas();
     }
 }
